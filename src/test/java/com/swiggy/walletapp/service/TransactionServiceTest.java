@@ -332,7 +332,8 @@ public class TransactionServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
-        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(walletRepository.findById(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -357,7 +358,8 @@ public class TransactionServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
-        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(walletRepository.findById(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -382,7 +384,8 @@ public class TransactionServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
-        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(walletRepository.findById(recipientId)).thenReturn(Optional.of(recipientWallet));
+        when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
