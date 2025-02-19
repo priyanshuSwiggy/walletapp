@@ -6,6 +6,7 @@ import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.exception.InsufficientFundsException;
 import com.swiggy.walletapp.exception.InvalidAmountException;
+import com.swiggy.walletapp.exception.UserNotFoundException;
 import com.swiggy.walletapp.service.TransactionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,61 +116,58 @@ public class TransactionControllerTest {
         assertThrows(InsufficientFundsException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
-//    @Test
-//    void testProcessTransfer_Successfully_WhenTransferringValidAmount() throws Exception {
-//        double amount = 100.0;
-//        Currency currency = Currency.INR;
-//        TransactionRequestDto transactionDto = new TransactionRequestDto(amount, currency);
-//        Long userId = 1L;
-//        Long walletId = 1L;
-//        Long recipientId = 2L;
-//
-//        doNothing().when(transactionService).processTransfer(userId, walletId, recipientId, transactionDto);
-//
-//        mockMvc.perform(put(TRANSFER_URL, userId, walletId, recipientId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(transactionDto)))
-//                .andExpect(status().isOk())
-//                .andExpect(content().string("Transfer successful"));
-//    }
-//
-//    @Test
-//    void testProcessTransfer_Failure_WhenDepositingAmountGreaterThanCurrentBalance() throws Exception {
-//        double amount = -100.0;
-//        Currency currency = Currency.INR;
-//        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
-//        Long userId = 1L;
-//        Long walletId = 1L;
-//        Long recipientId = 2L;
-//
-//        doThrow(new InsufficientFundsException("Deposit amount must be greater than current balance")).when(transactionService).processTransfer(userId, walletId, recipientId, transactionDto);
-//
-//        mockMvc.perform(put(TRANSFER_URL, userId, walletId, recipientId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(transactionDto)))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(content().string("Deposit amount must be greater than current balance"));
-//
-//        assertThrows(InsufficientFundsException.class, () -> transactionService.processTransfer(userId, walletId, recipientId, transactionDto));
-//    }
-//
-//    @Test
-//    void testProcessTransfer_Failure_WhenDepositingAmountToUnregisteredRecipientWallet() throws Exception {
-//        double amount = -100.0;
-//        Currency currency = Currency.INR;
-//        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
-//        Long userId = 1L;
-//        Long walletId = 1L;
-//        Long recipientId = 2L;
-//
-//        doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet")).when(transactionService).processTransfer(userId, walletId, recipientId, transactionDto);
-//
-//        mockMvc.perform(put(TRANSFER_URL, userId, walletId, recipientId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(transactionDto)))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(content().string("Amount can't be transferred to unregistered recipient wallet"));
-//
-//        assertThrows(UserNotFoundException.class, () -> transactionService.processTransfer(userId, walletId, recipientId, transactionDto));
-//    }
+    @Test
+    void testProcessTransfer_Successfully_WhenTransferringValidAmount() throws Exception {
+        double amount = 100.0;
+        Currency currency = Currency.INR;
+        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
+
+        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(transactionDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Transaction successful"));
+    }
+
+    @Test
+    void testProcessTransfer_Failure_WhenDepositingAmountGreaterThanCurrentBalance() throws Exception {
+        double amount = -100.0;
+        Currency currency = Currency.INR;
+        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new InsufficientFundsException("Deposit amount must be greater than current balance")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+
+        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(transactionDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Deposit amount must be greater than current balance"));
+
+        assertThrows(InsufficientFundsException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    void testProcessTransfer_Failure_WhenDepositingAmountToUnregisteredRecipientWallet() throws Exception {
+        double amount = -100.0;
+        Currency currency = Currency.INR;
+        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+
+        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(transactionDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Amount can't be transferred to unregistered recipient wallet"));
+
+        assertThrows(UserNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
 }

@@ -24,13 +24,13 @@ public class TransactionController {
         }
     }
 
-    @PostMapping("/transfers/{recipientId}")
-    public ResponseEntity<String> processTransfer(@PathVariable Long userId, @PathVariable Long walletId, @PathVariable Long recipientId, @RequestBody TransactionRequestDto transactionRequestDto) {
-        try {
-            transactionService.processTransfer(userId, walletId, recipientId, transactionRequestDto);
-            return new ResponseEntity<>("Transaction successful", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
-    }
+//    @PostMapping("/transfers/{recipientId}")
+//    public ResponseEntity<String> processTransfer(@PathVariable Long userId, @PathVariable Long walletId, @PathVariable Long recipientId, @RequestBody TransactionRequestDto transactionRequestDto) {
+//        try {
+//            transactionService.processTransfer(userId, walletId, recipientId, transactionRequestDto);
+//            return new ResponseEntity<>("Transaction successful", HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+//        }
+//    }
 }
