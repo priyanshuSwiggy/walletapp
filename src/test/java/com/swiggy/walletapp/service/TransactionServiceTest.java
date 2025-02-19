@@ -1,5 +1,6 @@
 package com.swiggy.walletapp.service;
 
+import com.swiggy.walletapp.dto.InterTransactionDto;
 import com.swiggy.walletapp.dto.IntraTransactionDto;
 import com.swiggy.walletapp.entity.Transaction;
 import com.swiggy.walletapp.entity.User;
@@ -36,7 +37,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_WalletNotFound_ThrowsException() {
+    public void testCreateTransaction_IntraTransaction_WalletNotFound_ThrowsException() {
         Long userId = 1L;
         Long walletId = 1L;
         IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
@@ -47,7 +48,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_UserNotFound_ThrowsException() {
+    public void testCreateTransaction_IntraTransaction_UserNotFound_ThrowsException() {
         Long userId = 1L;
         Long walletId = 1L;
         IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
@@ -59,7 +60,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_UnauthorizedUser_ThrowsException() {
+    public void testCreateTransaction_IntraTransaction_UnauthorizedUser_ThrowsException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -261,6 +262,135 @@ public class TransactionServiceTest {
         assertTrue(wallet.checkBalance(expectedBalance));
         verify(walletRepository).save(wallet);
         verify(transactionRepository).save(transaction);
+    }
+
+    @Test
+    public void testCreateTransaction_InterTransaction_WalletNotFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, 2L);
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
+
+        assertThrows(WalletNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    public void testCreateTransaction_InterTransaction_UserNotFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, 2L);
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(new Wallet(new User("otherUsername", "password"), Currency.INR)));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    public void testCreateTransaction_InterTransaction_UnauthorizedUser_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        User user = new User("username", "password");
+        User otherUser = new User("otherUsername", "password");
+        Wallet wallet = new Wallet(otherUser, Currency.INR);
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, 2L);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        assertThrows(UnauthorizedAccessException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    public void testCreateTransaction_InterTransaction_RecipientWalletNotFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Long recipientId = 2L;
+        User user = new User("username", "password");
+        Wallet wallet = new Wallet(1000.0, user, Currency.INR);
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, recipientId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.empty());
+
+        assertThrows(WalletNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    public void testCreateTransaction_TransferFromINRToINR_UpdatesBalances() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Long recipientId = 2L;
+        User user = new User("username", "password");
+        User recipient = new User("recipientUsername", "password");
+        Wallet senderWallet = new Wallet(1000.0, user, Currency.INR);
+        Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, recipientId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
+        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+
+        transactionService.createTransaction(userId, walletId, transactionDto);
+
+        double expectedSenderBalance = 900.0;
+        double expectedRecipientBalance = 600.0;
+        assertTrue(senderWallet.checkBalance(expectedSenderBalance));
+        assertTrue(recipientWallet.checkBalance(expectedRecipientBalance));
+        verify(walletRepository).save(senderWallet);
+        verify(walletRepository).save(recipientWallet);
+    }
+
+    @Test
+    public void testCreateTransaction_TransferFromUSDToINR_UpdatesBalances() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Long recipientId = 2L;
+        User user = new User("username", "password");
+        User recipient = new User("recipientUsername", "password");
+        Wallet senderWallet = new Wallet(1000.0, user, Currency.INR);
+        Wallet recipientWallet = new Wallet(500.0, recipient, Currency.USD);
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, recipientId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
+        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+
+        transactionService.createTransaction(userId, walletId, transactionDto);
+
+        double expectedSenderBalance = 900.0;
+        double expectedRecipientBalance = 500.0 + recipientWallet.convertedAmount(Currency.INR, 100.0);
+        assertTrue(senderWallet.checkBalance(expectedSenderBalance));
+        assertTrue(recipientWallet.checkBalance(expectedRecipientBalance));
+        verify(walletRepository).save(senderWallet);
+        verify(walletRepository).save(recipientWallet);
+    }
+
+    @Test
+    public void testCreateTransaction_TransferFromEURToINR_UpdatesBalances() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Long recipientId = 2L;
+        User user = new User("username", "password");
+        User recipient = new User("recipientUsername", "password");
+        Wallet senderWallet = new Wallet(1000.0, user, Currency.EUR);
+        Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
+        InterTransactionDto transactionDto = new InterTransactionDto(100.0, recipientId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(senderWallet));
+        when(walletRepository.findByUserId(recipientId)).thenReturn(Optional.of(recipientWallet));
+
+        transactionService.createTransaction(userId, walletId, transactionDto);
+
+        double expectedSenderBalance = 900.0;
+        double expectedRecipientBalance = 500.0 + recipientWallet.convertedAmount(Currency.EUR, 100.0);
+        assertTrue(senderWallet.checkBalance(expectedSenderBalance));
+        assertTrue(recipientWallet.checkBalance(expectedRecipientBalance));
+        verify(walletRepository).save(senderWallet);
+        verify(walletRepository).save(recipientWallet);
     }
 
 }
