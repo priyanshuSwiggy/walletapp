@@ -2,6 +2,7 @@ package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.InterTransactionDto;
 import com.swiggy.walletapp.dto.IntraTransactionDto;
+import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.entity.Transaction;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
@@ -10,11 +11,15 @@ import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.exception.UnauthorizedAccessException;
 import com.swiggy.walletapp.exception.UserNotFoundException;
 import com.swiggy.walletapp.exception.WalletNotFoundException;
+import com.swiggy.walletapp.mapper.TransactionMapper;
 import com.swiggy.walletapp.repository.TransactionRepository;
 import com.swiggy.walletapp.repository.UserRepository;
 import com.swiggy.walletapp.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -23,6 +28,7 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final TransactionMapper transactionMapper;
 
     public void createTransaction(Long userId, Long walletId, IntraTransactionDto intraTransactionDto) {
         Wallet wallet = fetchUserWallet(userId, walletId);
@@ -59,9 +65,14 @@ public class TransactionService {
 
         withdrawal(userId, wallet, amount);
 
-        Long recipientId = interTransactionDto.getRecipientId();
-        Wallet recipientWallet = walletRepository.findByUserId(recipientId)
+        Long recipientWalletId = interTransactionDto.getRecipientWalletId();
+
+        Wallet recipientWallet = walletRepository.findById(recipientWalletId)
                 .orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found"));
+        User recipientUser = userRepository.findByWallet(recipientWallet)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        Long recipientId = recipientUser.getId();
         double convertedRecipientAmount = recipientWallet.convertedAmount(senderCurrency, amount);
         deposit(recipientId, recipientWallet, convertedRecipientAmount);
     }
@@ -76,5 +87,11 @@ public class TransactionService {
         if (!wallet.isOwnedBy(user))
             throw new UnauthorizedAccessException("Unauthorized access to wallet");
         return wallet;
+    }
+
+    public List<TransactionDto> getTransactions(Long userId, Long walletId) {
+        fetchUserWallet(userId, walletId);
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        return transactionMapper.toDtoList(transactions);
     }
 }

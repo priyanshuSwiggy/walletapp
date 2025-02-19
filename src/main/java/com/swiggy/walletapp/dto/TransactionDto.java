@@ -1,14 +1,14 @@
 package com.swiggy.walletapp.dto;
 
-import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class IntraTransactionDto {
-    private TransactionType transactionType;
+public class TransactionDto {
+    private Long id;
     private double amount;
-    private Currency currency;
+    private TransactionType transactionType;
+    private Long userId;
 }

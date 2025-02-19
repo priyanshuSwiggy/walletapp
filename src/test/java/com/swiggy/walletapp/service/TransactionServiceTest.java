@@ -8,6 +8,7 @@ import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.exception.*;
+import com.swiggy.walletapp.mapper.TransactionMapper;
 import com.swiggy.walletapp.repository.TransactionRepository;
 import com.swiggy.walletapp.repository.UserRepository;
 import com.swiggy.walletapp.repository.WalletRepository;
@@ -26,14 +27,14 @@ public class TransactionServiceTest {
     private WalletRepository walletRepository;
     private TransactionRepository transactionRepository;
     private TransactionService transactionService;
-
+    private TransactionMapper transactionMapper;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
         walletRepository = mock(WalletRepository.class);
         transactionRepository = mock(TransactionRepository.class);
-        transactionService = new TransactionService(userRepository, walletRepository, transactionRepository);
+        transactionService = new TransactionService(userRepository, walletRepository, transactionRepository, transactionMapper);
     }
 
     @Test
@@ -75,7 +76,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_DepositZeroAmount_ThrowsException() {
+    public void testCreateTransaction_DepositZeroAmount_ThrowsInvalidAmountException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -89,7 +90,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_DepositNegativeAmount_ThrowsException() {
+    public void testCreateTransaction_DepositNegativeAmount_ThrowsInvalidAmountException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -163,7 +164,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_WithdrawZeroAmount_ThrowsException() {
+    public void testCreateTransaction_WithdrawZeroAmount_ThrowsInvalidAmountException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -177,7 +178,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_WithdrawNegativeAmount_ThrowsException() {
+    public void testCreateTransaction_WithdrawNegativeAmount_ThrowsInvalidAmountException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -191,7 +192,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_WithdrawAmountExceedsExistingAmount_ThrowsException() {
+    public void testCreateTransaction_WithdrawAmountExceedsExistingAmount_ThrowsInsufficientFundsException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -265,7 +266,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_InterTransaction_WalletNotFound_ThrowsException() {
+    public void testCreateTransaction_InterTransaction_ThrowsWalletNotFoundException() {
         Long userId = 1L;
         Long walletId = 1L;
         InterTransactionDto transactionDto = new InterTransactionDto(100.0, 2L);
@@ -276,7 +277,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_InterTransaction_UserNotFound_ThrowsException() {
+    public void testCreateTransaction_InterTransaction_ThrowsUserNotFoundException() {
         Long userId = 1L;
         Long walletId = 1L;
         InterTransactionDto transactionDto = new InterTransactionDto(100.0, 2L);
@@ -288,7 +289,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_InterTransaction_UnauthorizedUser_ThrowsException() {
+    public void testCreateTransaction_InterTransaction_ThrowsUnauthorizedUserException() {
         Long userId = 1L;
         Long walletId = 1L;
         User user = new User("username", "password");
@@ -303,7 +304,7 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCreateTransaction_InterTransaction_RecipientWalletNotFound_ThrowsException() {
+    public void testCreateTransaction_InterTransaction_ThrowsRecipientWalletNotFoundException() {
         Long userId = 1L;
         Long walletId = 1L;
         Long recipientId = 2L;

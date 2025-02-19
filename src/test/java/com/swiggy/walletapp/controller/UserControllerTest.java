@@ -49,7 +49,7 @@ public class UserControllerTest {
         mockMvc.perform(post(USER_REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(content().string("User registered successfully"));
     }
 

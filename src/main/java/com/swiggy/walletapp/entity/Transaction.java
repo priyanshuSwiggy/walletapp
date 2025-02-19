@@ -4,25 +4,24 @@ import com.swiggy.walletapp.enums.TransactionType;
 import jakarta.persistence.*;
 import lombok.*;
 
+@Data
 @Entity
 @Table(name = "transaction")
 @EqualsAndHashCode
+@RequiredArgsConstructor
 public class Transaction {
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private double amount;
+
+    @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
-    private Long senderId;
+    private Long userId;
 
-    public Transaction(double convertedAmount, TransactionType transactionType, Long userId) {
-        this.amount = convertedAmount;
+    public Transaction(double amount, TransactionType transactionType, Long userId) {
+        this.amount = amount;
         this.transactionType = transactionType;
-        this.senderId = userId;
-    }
-
-    public Transaction() {
-
+        this.userId = userId;
     }
 }
