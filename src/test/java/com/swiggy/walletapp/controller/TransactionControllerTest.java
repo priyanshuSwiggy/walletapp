@@ -3,6 +3,7 @@ package com.swiggy.walletapp.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiggy.walletapp.dto.InterTransactionDto;
 import com.swiggy.walletapp.dto.IntraTransactionDto;
+import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.exception.*;
@@ -12,13 +13,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -284,5 +289,86 @@ public class TransactionControllerTest {
                 .andExpect(content().string("Unauthorized access to wallet"));
 
         assertThrows(UnauthorizedAccessException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    void testGetTransactions_ThrowsWalletNotFoundException() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new WalletNotFoundException("Wallet not found")).when(transactionService).getTransactions(userId, walletId);
+
+        mockMvc.perform(get(FETCH_TRANSACTIONS_URL, userId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        assertThrows(WalletNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    void testGetTransactions_ThrowsUserNotFoundException() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new UserNotFoundException("User not found")).when(transactionService).getTransactions(userId, walletId);
+
+        mockMvc.perform(get(FETCH_TRANSACTIONS_URL, userId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        assertThrows(UserNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    void testGetTransactions_ThrowsUnauthorizedUserException() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet")).when(transactionService).getTransactions(userId, walletId);
+
+        mockMvc.perform(get(FETCH_TRANSACTIONS_URL, userId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    void testGetTransactions_ThrowsNoTransactionsFoundException() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new NoTransactionsFoundException("No transactions found for user")).when(transactionService).getTransactions(userId, walletId);
+
+        mockMvc.perform(get(FETCH_TRANSACTIONS_URL, userId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    void testGetTransactions_SuccessfullyFetchListOfTransactions() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        TransactionDto firstTransactionDto = new TransactionDto(1L, 100.0, TransactionType.DEPOSIT, userId);
+        TransactionDto secondTransactionDto = new TransactionDto(2L, 50.0, TransactionType.WITHDRAWAL, userId);
+        when(transactionService.getTransactions(userId, walletId)).thenReturn(List.of(firstTransactionDto, secondTransactionDto));
+
+        MvcResult mvcResult = mockMvc.perform(get(FETCH_TRANSACTIONS_URL, userId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedResponse = objectMapper.writeValueAsString(List.of(firstTransactionDto, secondTransactionDto));
+        String actualResponse = mvcResult.getResponse().getContentAsString();
+
+        JSONAssert.assertEquals(expectedResponse, actualResponse, false);
     }
 }

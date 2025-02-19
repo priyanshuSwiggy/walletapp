@@ -8,6 +8,7 @@ import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
+import com.swiggy.walletapp.exception.NoTransactionsFoundException;
 import com.swiggy.walletapp.exception.UnauthorizedAccessException;
 import com.swiggy.walletapp.exception.UserNotFoundException;
 import com.swiggy.walletapp.exception.WalletNotFoundException;
@@ -19,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -92,6 +92,8 @@ public class TransactionService {
     public List<TransactionDto> getTransactions(Long userId, Long walletId) {
         fetchUserWallet(userId, walletId);
         List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        if(transactions.isEmpty())
+            throw new NoTransactionsFoundException("No transactions found for user");
         return transactionMapper.toDtoList(transactions);
     }
 }
