@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionRequestDto {
+public class IntraTransactionDto {
     private TransactionType transactionType;
     private double amount;
     private Currency currency;

@@ -19,6 +19,7 @@ public class Wallet {
 
     private double balance;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
@@ -33,20 +34,22 @@ public class Wallet {
     }
 
     public void deposit(double amount) {
-        if (amount <= 0) {
+        double convertedAmount = convertedAmount(this.currency, amount);
+        if (convertedAmount <= 0) {
             throw new InvalidAmountException("Deposit amount must be positive.");
         }
-        this.balance += amount;
+        this.balance += convertedAmount;
     }
 
     public void withdraw(double amount) {
-        if (amount <= 0) {
+        double convertedAmount = convertedAmount(this.currency, amount);
+        if (convertedAmount <= 0) {
             throw new InvalidAmountException("Withdrawal amount must be positive.");
         }
-        if (this.balance < amount) {
+        if (this.balance < convertedAmount) {
             throw new InsufficientFundsException("Insufficient funds.");
         }
-        this.balance -= amount;
+        this.balance -= convertedAmount;
     }
 
     public boolean checkBalance(double balance) {
@@ -57,7 +60,7 @@ public class Wallet {
         return this.user.equals(user);
     }
 
-    public double convertAmount(Currency senderCurrency, double amount) {
-        return senderCurrency.convertTo(this.currency, amount);
+    public double convertedAmount(Currency currency, double amount) {
+        return currency.convertTo(this.currency, amount);
     }
 }

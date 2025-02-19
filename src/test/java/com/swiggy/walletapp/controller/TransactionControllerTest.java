@@ -1,7 +1,7 @@
 package com.swiggy.walletapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swiggy.walletapp.dto.TransactionRequestDto;
+import com.swiggy.walletapp.dto.IntraTransactionDto;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.exception.InsufficientFundsException;
@@ -26,7 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class TransactionControllerTest {
 
-    public static final String TRANSACTION_URL = "/users/{userId}/wallets/{walletId}/transactions";
+    public static final String INTRA_TRANSACTIONS_URL = "/users/{userId}/wallets/{walletId}/transactions/intra-transactions";
+    public static final String INTER_TRANSACTIONS_URL = "/users/{userId}/wallets/{walletId}/transactions/intra-transactions";
 
     @Mock
     private TransactionService transactionService;
@@ -48,13 +49,13 @@ public class TransactionControllerTest {
     void testProcessDeposit_Successfully_WhenDepositingValidAmount() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTRA_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isOk())
@@ -65,13 +66,13 @@ public class TransactionControllerTest {
     void testProcessDeposit_Failure_WhenDepositingInvalidAmount() throws Exception {
         double amount = -100.0;
         Currency currency = Currency.INR;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doThrow(new InvalidAmountException("Deposit amount must be positive")).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTRA_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isBadRequest())
@@ -84,13 +85,13 @@ public class TransactionControllerTest {
     void testProcessWithdrawal_Success_WhenWithdrawingValidAmount() throws Exception {
         double amount = 50.0;
         Currency currency = Currency.USD;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTRA_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isOk())
@@ -101,13 +102,13 @@ public class TransactionControllerTest {
     void testProcessWithdrawal_Failure_WhenWithdrawingInvalidAmount() throws Exception {
         double amount = 500.0;
         Currency currency = Currency.USD;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doThrow(new InsufficientFundsException("Insufficient balance")).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTRA_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isBadRequest())
@@ -120,13 +121,13 @@ public class TransactionControllerTest {
     void testProcessTransfer_Successfully_WhenTransferringValidAmount() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.TRANSFER, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTER_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isOk())
@@ -137,13 +138,13 @@ public class TransactionControllerTest {
     void testProcessTransfer_Failure_WhenDepositingAmountGreaterThanCurrentBalance() throws Exception {
         double amount = -100.0;
         Currency currency = Currency.INR;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.TRANSFER, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doThrow(new InsufficientFundsException("Deposit amount must be greater than current balance")).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTER_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isBadRequest())
@@ -156,13 +157,13 @@ public class TransactionControllerTest {
     void testProcessTransfer_Failure_WhenDepositingAmountToUnregisteredRecipientWallet() throws Exception {
         double amount = -100.0;
         Currency currency = Currency.INR;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.TRANSFER, amount, currency);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.TRANSFER, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
         doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet")).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
-        mockMvc.perform(post(TRANSACTION_URL, userId, walletId)
+        mockMvc.perform(post(INTER_TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
                 .andExpect(status().isBadRequest())

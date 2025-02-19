@@ -1,6 +1,7 @@
 package com.swiggy.walletapp.controller;
 
-import com.swiggy.walletapp.dto.TransactionRequestDto;
+import com.swiggy.walletapp.dto.InterTransactionDto;
+import com.swiggy.walletapp.dto.IntraTransactionDto;
 import com.swiggy.walletapp.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,23 +15,23 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @PostMapping
-    public ResponseEntity<String> createTransaction(@PathVariable Long userId, @PathVariable Long walletId, @RequestBody TransactionRequestDto transactionRequestDto) {
+    @PostMapping("/intra-transactions")
+    public ResponseEntity<String> createTransaction(@PathVariable Long userId, @PathVariable Long walletId, @RequestBody IntraTransactionDto intraTransactionDto) {
         try {
-            transactionService.createTransaction(userId, walletId, transactionRequestDto);
+            transactionService.createTransaction(userId, walletId, intraTransactionDto);
             return new ResponseEntity<>("Transaction successful", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-//    @PostMapping("/transfers/{recipientId}")
-//    public ResponseEntity<String> processTransfer(@PathVariable Long userId, @PathVariable Long walletId, @PathVariable Long recipientId, @RequestBody TransactionRequestDto transactionRequestDto) {
-//        try {
-//            transactionService.processTransfer(userId, walletId, recipientId, transactionRequestDto);
-//            return new ResponseEntity<>("Transaction successful", HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-//        }
-//    }
+    @PostMapping("/inter-transactions")
+    public ResponseEntity<String> createTransaction(@PathVariable Long userId, @PathVariable Long walletId, @RequestBody InterTransactionDto interTransactionDto) {
+        try {
+            transactionService.createTransaction(userId, walletId, interTransactionDto);
+            return new ResponseEntity<>("Transaction successful", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 }

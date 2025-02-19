@@ -1,6 +1,6 @@
 package com.swiggy.walletapp.service;
 
-import com.swiggy.walletapp.dto.TransactionRequestDto;
+import com.swiggy.walletapp.dto.IntraTransactionDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -38,7 +38,7 @@ public class TransactionServiceTest {
     public void testProcessTransaction_WalletNotFound_ThrowsException() {
         Long userId = 1L;
         Long walletId = 1L;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
 
         when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
 
@@ -49,7 +49,7 @@ public class TransactionServiceTest {
     public void testProcessTransaction_UserNotFound_ThrowsException() {
         Long userId = 1L;
         Long walletId = 1L;
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
 
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(new Wallet(new User("otherUsername", "password"), Currency.INR)));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -64,7 +64,7 @@ public class TransactionServiceTest {
         User user = new User("username", "password");
         User otherUser = new User("otherUsername", "password");
         Wallet wallet = new Wallet(otherUser, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -78,7 +78,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 0.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 0.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -92,7 +92,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, -100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, -100.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -106,7 +106,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -124,7 +124,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.DEPOSIT, 100.0, Currency.EUR);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.DEPOSIT, 100.0, Currency.EUR);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -142,7 +142,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, 0.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, 0.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -156,7 +156,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, -100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, -100.0, Currency.USD);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
@@ -170,7 +170,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, 100.0, Currency.USD);
 
         wallet.deposit(50.0 * Currency.USD.getConversionRate());
 
@@ -186,7 +186,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, 100.0, Currency.USD);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, 100.0, Currency.USD);
 
         wallet.deposit(200.0 * Currency.USD.getConversionRate());
 
@@ -206,7 +206,7 @@ public class TransactionServiceTest {
         Long walletId = 1L;
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        TransactionRequestDto transactionDto = new TransactionRequestDto(TransactionType.WITHDRAWAL, 100.0, Currency.EUR);
+        IntraTransactionDto transactionDto = new IntraTransactionDto(TransactionType.WITHDRAWAL, 100.0, Currency.EUR);
 
         wallet.deposit(200.0 * Currency.EUR.getConversionRate());
 

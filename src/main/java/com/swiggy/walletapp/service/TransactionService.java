@@ -1,7 +1,7 @@
 package com.swiggy.walletapp.service;
 
-import com.swiggy.walletapp.dto.TransactionRequestDto;
-import com.swiggy.walletapp.dto.TransactionResponseDto;
+import com.swiggy.walletapp.dto.InterTransactionDto;
+import com.swiggy.walletapp.dto.IntraTransactionDto;
 import com.swiggy.walletapp.entity.Transaction;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
@@ -24,24 +24,46 @@ public class TransactionService {
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
 
-    public void createTransaction(Long userId, Long walletId, TransactionRequestDto transactionRequestDto) {
+    public void createTransaction(Long userId, Long walletId, IntraTransactionDto intraTransactionDto) {
         Wallet wallet = fetchUserWallet(userId, walletId);
-        Currency senderCurrency = transactionRequestDto.getCurrency();
-        double amount = transactionRequestDto.getAmount();
-        double convertedAmount = wallet.convertAmount(senderCurrency, amount);
+        Currency currency = intraTransactionDto.getCurrency();
+        double amount = intraTransactionDto.getAmount();
+        double convertedAmount = wallet.convertedAmount(currency, amount);
 
-        if(transactionRequestDto.getTransactionType() == TransactionType.DEPOSIT) {
-            wallet.deposit(convertedAmount);
-            walletRepository.save(wallet);
-            Transaction transaction = new Transaction(convertedAmount, TransactionType.DEPOSIT, userId);
-            transactionRepository.save(transaction);
+        if(intraTransactionDto.getTransactionType() == TransactionType.DEPOSIT) {
+            deposit(userId, wallet, convertedAmount);
         }
-        if(transactionRequestDto.getTransactionType() == TransactionType.WITHDRAWAL)  {
-            wallet.withdraw(convertedAmount);
-            walletRepository.save(wallet);
-            Transaction transaction = new Transaction(convertedAmount, TransactionType.WITHDRAWAL, userId);
-            transactionRepository.save(transaction);
+        if(intraTransactionDto.getTransactionType() == TransactionType.WITHDRAWAL)  {
+            withdrawal(userId, wallet, convertedAmount);
         }
+    }
+
+    private void withdrawal(Long userId, Wallet wallet, double convertedAmount) {
+        wallet.withdraw(convertedAmount);
+        walletRepository.save(wallet);
+        Transaction transaction = new Transaction(convertedAmount, TransactionType.WITHDRAWAL, userId);
+        transactionRepository.save(transaction);
+    }
+
+    private void deposit(Long userId, Wallet wallet, double convertedAmount) {
+        wallet.deposit(convertedAmount);
+        walletRepository.save(wallet);
+        Transaction transaction = new Transaction(convertedAmount, TransactionType.DEPOSIT, userId);
+        transactionRepository.save(transaction);
+    }
+
+    public void createTransaction(Long userId, Long walletId, InterTransactionDto interTransactionDto) {
+        Wallet wallet = fetchUserWallet(userId, walletId);
+        Currency senderCurrency = wallet.getCurrency();
+        double amount = interTransactionDto.getAmount();
+
+        withdrawal(userId, wallet, amount);
+
+        Long recipientId = interTransactionDto.getRecipientId();
+        Wallet recipientWallet = walletRepository.findByUserId(recipientId)
+                .orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found"));
+        double convertedRecipientAmount = recipientWallet.convertedAmount(senderCurrency, amount);
+        deposit(recipientId, recipientWallet, convertedRecipientAmount);
     }
 
     private Wallet fetchUserWallet(Long userId, Long walletId) {
@@ -51,12 +73,11 @@ public class TransactionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if (!wallet.isOwnedBy(user)) {
+        if (!wallet.isOwnedBy(user))
             throw new UnauthorizedAccessException("Unauthorized access to wallet");
-        }
         return wallet;
     }
 
-    public void processTransfer(Long userId, Long walletId, Long recipientId, TransactionRequestDto transactionRequestDto) {
+    public void processTransfer(Long userId, Long walletId, Long recipientId, IntraTransactionDto intraTransactionDto) {
     }
 }
