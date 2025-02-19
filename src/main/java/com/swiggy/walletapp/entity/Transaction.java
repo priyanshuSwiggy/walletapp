@@ -8,6 +8,7 @@ import lombok.*;
 @Entity
 @Table(name = "transaction")
 @EqualsAndHashCode
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class Transaction {
     @Id

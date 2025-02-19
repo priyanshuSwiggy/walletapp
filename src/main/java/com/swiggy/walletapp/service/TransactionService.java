@@ -66,14 +66,13 @@ public class TransactionService {
         withdrawal(userId, wallet, amount);
 
         Long recipientWalletId = interTransactionDto.getRecipientWalletId();
-
         Wallet recipientWallet = walletRepository.findById(recipientWalletId)
                 .orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found"));
         User recipientUser = userRepository.findByWallet(recipientWallet)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
+                .orElseThrow(() -> new UserNotFoundException("Recipient user not found"));
         Long recipientId = recipientUser.getId();
         double convertedRecipientAmount = recipientWallet.convertedAmount(senderCurrency, amount);
+
         deposit(recipientId, recipientWallet, convertedRecipientAmount);
     }
 

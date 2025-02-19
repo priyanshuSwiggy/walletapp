@@ -2,6 +2,7 @@ package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.InterTransactionDto;
 import com.swiggy.walletapp.dto.IntraTransactionDto;
+import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.entity.Transaction;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
@@ -15,10 +16,10 @@ import com.swiggy.walletapp.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class TransactionServiceTest {
@@ -34,6 +35,7 @@ public class TransactionServiceTest {
         userRepository = mock(UserRepository.class);
         walletRepository = mock(WalletRepository.class);
         transactionRepository = mock(TransactionRepository.class);
+        transactionMapper = mock(TransactionMapper.class);
         transactionService = new TransactionService(userRepository, walletRepository, transactionRepository, transactionMapper);
     }
 
@@ -397,4 +399,76 @@ public class TransactionServiceTest {
         verify(walletRepository).save(recipientWallet);
     }
 
+    @Test
+    public void testGetTransactions_WalletNotFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
+
+        assertThrows(WalletNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    public void testGetTransactions_UserNotFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(new Wallet(new User("otherUsername", "password"), Currency.INR)));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    public void testGetTransactions_UnauthorizedUser_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        User user = new User("username", "password");
+        User otherUser = new User("otherUsername", "password");
+        Wallet wallet = new Wallet(otherUser, Currency.INR);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    public void testGetTransactions_NoTransactionsFound_ThrowsException() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        User user = new User("username", "password");
+        Wallet wallet = new Wallet(user, Currency.INR);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(transactionRepository.findByUserId(userId)).thenReturn(List.of());
+
+        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+    }
+
+    @Test
+    public void testGetTransactions_SuccessfullyFetchListOfTransactions() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        User user = new User("username", "password");
+        Wallet wallet = new Wallet(user, Currency.INR);
+        Transaction firstTransaction = new Transaction(1L, 100.0, TransactionType.DEPOSIT, userId);
+        Transaction secondTransaction = new Transaction(2L, 50.0, TransactionType.WITHDRAWAL, userId);
+        List<Transaction> transactionList = List.of(firstTransaction, secondTransaction);
+        List<TransactionDto> transactionDtoList = List.of(
+                new TransactionDto(1L, 100.0, TransactionType.DEPOSIT, userId),
+                new TransactionDto(2L, 50.0, TransactionType.WITHDRAWAL, userId)
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(transactionRepository.findByUserId(userId)).thenReturn(transactionList);
+        when(transactionMapper.toDtoList(transactionList)).thenReturn(transactionDtoList);
+
+        List<TransactionDto> result = transactionService.getTransactions(userId, walletId);
+
+        assertEquals(transactionDtoList, result);
+    }
 }
