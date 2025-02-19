@@ -9,7 +9,6 @@ import com.swiggy.walletapp.repository.UserRepository;
 import com.swiggy.walletapp.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -36,24 +35,24 @@ public class UserServiceTest {
 
     @Test
     public void testRegister_NewUser_SuccessfullyRegisters() {
-        UserDto userDto = new UserDto("test", "test");
-        User user = new User("test", "test");
+        UserDto userDto = new UserDto("username", "password", Currency.INR);
+        User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
-        when(userRepository.findByUsername("test")).thenReturn(Optional.empty());
+        when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
 
         userService.register(userDto);
-        verify(userRepository, times(1)).findByUsername("test");
+        verify(userRepository, times(1)).findByUsername("username");
         verify(userRepository, times(1)).save(user);
         verify(walletRepository, times(1)).save(wallet);
     }
 
     @Test
     public void testRegisterUser_UserAlreadyExists_ThrowsException() {
-        UserDto userDto = new UserDto("test", "test");
-        User user = new User("test", "test");
-        when(userRepository.findByUsername("test")).thenReturn(Optional.of(user));
+        UserDto userDto = new UserDto("username", "password", Currency.INR);
+        User user = new User("username", "password");
+        when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
         assertThrows(UserAlreadyExistsException.class, () -> userService.register(userDto));
-        verify(userRepository, times(1)).findByUsername("test");
+        verify(userRepository, times(1)).findByUsername("username");
         verify(userRepository, never()).save(user);
         verify(walletRepository, never()).save(any(Wallet.class));
     }

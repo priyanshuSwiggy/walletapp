@@ -2,6 +2,7 @@ package com.swiggy.walletapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiggy.walletapp.dto.UserDto;
+import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.exception.UserAlreadyExistsException;
 import com.swiggy.walletapp.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,8 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,13 +37,13 @@ public class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        userDto = new UserDto("username", "password");
+        userDto = new UserDto("username", "password", Currency.INR);
         MockitoAnnotations.openMocks(this);
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
     @Test
-    public void registerUser_Successfully_WhenValidInputFromClient() throws Exception {
+    public void testRegisterUser_Successfully_WhenValidInputFromUser() throws Exception {
         doNothing().when(userService).register(userDto);
 
         mockMvc.perform(post(USER_REGISTER_URL)
@@ -54,7 +54,7 @@ public class UserControllerTest {
     }
 
     @Test
-    public void registerUser_Failure_WhenInvalidInputFromClient() throws Exception {
+    public void testRegisterUser_Failure_WhenSameUserRegistersAgain() throws Exception {
         doThrow(new UserAlreadyExistsException("User already exists")).when(userService).register(userDto);
 
         mockMvc.perform(post(USER_REGISTER_URL)

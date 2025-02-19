@@ -1,7 +1,7 @@
 package com.swiggy.walletapp.enums;
 
 public enum Currency {
-    INR(1.0), USD(0.014), EUR(0.012);
+    INR(1.0), USD(83.0), EUR(90.0);
 
     private final double conversionRate;
 
@@ -12,10 +12,8 @@ public enum Currency {
     public double getConversionRate(){
         return this.conversionRate;
     }
-    public double convertToINR(double amount){
-        return amount * this.conversionRate;
-    }
-    public double convertFromINR(double amount){
-        return amount / this.conversionRate;
+
+    public double convertTo(Currency currency, double amount){
+        return amount * this.conversionRate / currency.getConversionRate();
     }
 }

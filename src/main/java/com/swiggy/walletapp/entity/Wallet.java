@@ -4,17 +4,14 @@ import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.exception.InsufficientFundsException;
 import com.swiggy.walletapp.exception.InvalidAmountException;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
-//@Data
 @Entity
 @Table(name = "wallet")
 @RequiredArgsConstructor
 @EqualsAndHashCode
-//@ToString
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +22,8 @@ public class Wallet {
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-//    @ToString.Exclude
     @OneToOne
-    @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "userId")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
     public Wallet(User user, Currency currency) {
@@ -59,5 +55,9 @@ public class Wallet {
 
     public boolean isOwnedBy(User user) {
         return this.user.equals(user);
+    }
+
+    public double convertAmount(Currency senderCurrency, double amount) {
+        return senderCurrency.convertTo(this.currency, amount);
     }
 }

@@ -3,13 +3,13 @@ package com.swiggy.walletapp.dto;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Getter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDto {
+public class TransactionRequestDto {
     private TransactionType transactionType;
     private double amount;
     private Currency currency;

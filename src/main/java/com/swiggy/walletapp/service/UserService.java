@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @Service
 public class UserService {
@@ -24,13 +22,14 @@ public class UserService {
     public void register(UserDto userDto) {
         String username = userDto.getUsername();
         String password = userDto.getPassword();
+        Currency defaultCurrency = userDto.getCurrency();
         User user = new User(username, password);
         userRepository.findByUsername(username).ifPresent(u -> {
             throw new UserAlreadyExistsException("User already exists");
         });
         user.encodePassword(passwordEncoder);
         userRepository.save(user);
-        Wallet wallet = new Wallet(user, Currency.INR);
+        Wallet wallet = new Wallet(user, defaultCurrency);
         walletRepository.save(wallet);
     }
 }

@@ -1,13 +1,13 @@
 package com.swiggy.walletapp.dto;
 
+import com.swiggy.walletapp.enums.Currency;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Getter
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
 public class UserDto {
     private String username;
     private String password;
+    private Currency currency;
 }
