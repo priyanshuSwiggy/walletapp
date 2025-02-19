@@ -77,7 +77,4 @@ public class TransactionService {
             throw new UnauthorizedAccessException("Unauthorized access to wallet");
         return wallet;
     }
-
-    public void processTransfer(Long userId, Long walletId, Long recipientId, IntraTransactionDto intraTransactionDto) {
-    }
 }

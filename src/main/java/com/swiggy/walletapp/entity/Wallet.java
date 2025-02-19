@@ -33,6 +33,12 @@ public class Wallet {
         this.currency = currency;
     }
 
+    public Wallet(double balance, User user, Currency currency) {
+        this.balance = balance;
+        this.user = user;
+        this.currency = currency;
+    }
+
     public void deposit(double amount) {
         double convertedAmount = convertedAmount(this.currency, amount);
         if (convertedAmount <= 0) {

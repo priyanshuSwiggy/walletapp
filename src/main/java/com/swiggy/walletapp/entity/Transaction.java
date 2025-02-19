@@ -2,13 +2,11 @@ package com.swiggy.walletapp.entity;
 
 import com.swiggy.walletapp.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Entity
 @Table(name = "transaction")
+@EqualsAndHashCode
 public class Transaction {
     @Getter
     @Id
