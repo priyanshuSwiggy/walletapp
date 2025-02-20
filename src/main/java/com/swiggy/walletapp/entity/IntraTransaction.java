@@ -36,6 +36,12 @@ public class IntraTransaction {
         this.userId = userId;
     }
 
+    public IntraTransaction(double amount, TransactionType transactionType, Long userId) {
+        this.amount = amount;
+        this.transactionType = transactionType;
+        this.userId = userId;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.timestamp = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);

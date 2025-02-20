@@ -7,11 +7,16 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+import org.springframework.http.HttpStatus;
+
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "wallet")
 @RequiredArgsConstructor
 @EqualsAndHashCode
+@ToString
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +48,7 @@ public class Wallet {
     public void deposit(double amount) {
         double convertedAmount = convertedAmount(this.currency, amount);
         if (convertedAmount <= 0) {
-            throw new InvalidAmountException("Deposit amount must be positive.");
+            throw new InvalidAmountException("Deposit amount must be positive", HttpStatus.BAD_REQUEST);
         }
         this.balance += convertedAmount;
     }
@@ -51,10 +56,10 @@ public class Wallet {
     public void withdraw(double amount) {
         double convertedAmount = convertedAmount(this.currency, amount);
         if (convertedAmount <= 0) {
-            throw new InvalidAmountException("Withdrawal amount must be positive.");
+            throw new InvalidAmountException("Withdrawal amount must be positive", HttpStatus.BAD_REQUEST);
         }
         if (this.balance < convertedAmount) {
-            throw new InsufficientFundsException("Insufficient funds.");
+            throw new InsufficientFundsException("Insufficient funds", HttpStatus.BAD_REQUEST);
         }
         this.balance -= convertedAmount;
     }

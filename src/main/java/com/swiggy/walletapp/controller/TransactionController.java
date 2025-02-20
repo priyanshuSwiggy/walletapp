@@ -20,22 +20,13 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long userId, @PathVariable Long walletId) {
-        List<TransactionResponseDto> transactions = Collections.emptyList();
-        try {
-            transactions = transactionService.getTransactions(userId, walletId);
-            return new ResponseEntity<>(transactions, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(transactions, HttpStatus.BAD_REQUEST);
-        }
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<String> createTransaction(@PathVariable Long userId, @PathVariable Long walletId, @RequestBody TransactionDto transactionDto) {
-        try {
-            transactionService.createTransaction(userId, walletId, transactionDto);
-            return new ResponseEntity<>("Transaction successful", HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+        transactionService.createTransaction(userId, walletId, transactionDto);
+        return new ResponseEntity<>("Transaction successful", HttpStatus.CREATED);
     }
 }

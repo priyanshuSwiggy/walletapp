@@ -8,6 +8,7 @@ import com.swiggy.walletapp.exception.UserAlreadyExistsException;
 import com.swiggy.walletapp.repository.UserRepository;
 import com.swiggy.walletapp.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class UserService {
         Currency defaultCurrency = userDto.getCurrency();
         User user = new User(username, password);
         userRepository.findByUsername(username).ifPresent(u -> {
-            throw new UserAlreadyExistsException("User already exists");
+            throw new UserAlreadyExistsException("User already exists", HttpStatus.CONFLICT);
         });
         user.encodePassword(passwordEncoder);
         userRepository.save(user);

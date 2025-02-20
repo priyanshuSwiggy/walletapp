@@ -7,11 +7,13 @@ import com.swiggy.walletapp.entity.IntraTransaction;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.enums.TransactionType;
+import com.swiggy.walletapp.exception.InvalidTransactionTypeException;
 import com.swiggy.walletapp.exception.NoTransactionsFoundException;
 import com.swiggy.walletapp.exception.UnauthorizedAccessException;
 import com.swiggy.walletapp.repository.InterTransactionRepository;
 import com.swiggy.walletapp.repository.IntraTransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,7 +39,7 @@ public class TransactionService {
                 transfer(userId, walletId, transactionDto);
                 break;
             default:
-                throw new IllegalArgumentException("Invalid transaction type: " + transactionDto.getTransactionType());
+                throw new InvalidTransactionTypeException("Invalid transaction type", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -71,14 +73,17 @@ public class TransactionService {
     }
 
     public List<TransactionResponseDto> getTransactions(Long userId, Long walletId) {
-        if(walletService.isUserIsUnauthorized(userId, walletId))
-            throw new UnauthorizedAccessException("Unauthorized access to wallet");
+        if(walletService.isUnauthorizedUser(userId, walletId))
+            throw new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED);
+
         List<IntraTransaction> intraTransactions = intraTransactionRepository.findByUserId(userId);
         List<InterTransaction> interTransactions = new ArrayList<>();
         interTransactions.addAll(interTransactionRepository.findByRecipientId(userId));
         interTransactions.addAll(interTransactionRepository.findBySenderId(userId));
+
         if(intraTransactions.isEmpty() && interTransactions.isEmpty())
-            throw new NoTransactionsFoundException("No transactions found for user");
+            throw new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND);
+
         List<TransactionResponseDto> transactionResponse = new ArrayList<>();
         for (IntraTransaction intraTransaction : intraTransactions) {
             transactionResponse.add(new TransactionResponseDto(intraTransaction));

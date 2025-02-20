@@ -20,9 +20,7 @@ import static org.mockito.Mockito.*;
 public class UserServiceTest {
 
     private UserRepository userRepository;
-
     private WalletRepository walletRepository;
-
     private UserService userService;
 
     @BeforeEach
@@ -34,24 +32,27 @@ public class UserServiceTest {
     }
 
     @Test
-    public void testRegister_NewUser_SuccessfullyRegisters() {
+    public void testRegisterNewUserSuccessfullyRegisters() {
         UserDto userDto = new UserDto("username", "password", Currency.INR);
         User user = new User("username", "password");
         Wallet wallet = new Wallet(user, Currency.INR);
         when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
 
         userService.register(userDto);
+
         verify(userRepository, times(1)).findByUsername("username");
         verify(userRepository, times(1)).save(user);
         verify(walletRepository, times(1)).save(wallet);
     }
 
     @Test
-    public void testRegisterUser_UserAlreadyExists_ThrowsException() {
+    public void testRegisterUserThrowsExceptionWhenUserAlreadyExists() {
         UserDto userDto = new UserDto("username", "password", Currency.INR);
         User user = new User("username", "password");
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
+
         assertThrows(UserAlreadyExistsException.class, () -> userService.register(userDto));
+
         verify(userRepository, times(1)).findByUsername("username");
         verify(userRepository, never()).save(user);
         verify(walletRepository, never()).save(any(Wallet.class));

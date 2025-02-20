@@ -3,6 +3,7 @@ package com.swiggy.walletapp.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiggy.walletapp.dto.UserDto;
 import com.swiggy.walletapp.enums.Currency;
+import com.swiggy.walletapp.exception.GlobalExceptionHandler;
 import com.swiggy.walletapp.exception.UserAlreadyExistsException;
 import com.swiggy.walletapp.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -39,11 +41,12 @@ public class UserControllerTest {
     void setUp() {
         userDto = new UserDto("username", "password", Currency.INR);
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
     }
 
     @Test
-    public void testRegisterUser_Successfully_WhenValidInputFromUser() throws Exception {
+    public void testRegisterUserSuccessfullyWhenValidInputFromUser() throws Exception {
         doNothing().when(userService).register(userDto);
 
         mockMvc.perform(post(USER_REGISTER_URL)
@@ -54,13 +57,13 @@ public class UserControllerTest {
     }
 
     @Test
-    public void testRegisterUser_Failure_WhenSameUserRegistersAgain() throws Exception {
-        doThrow(new UserAlreadyExistsException("User already exists")).when(userService).register(userDto);
+    public void testRegisterUserFailureWhenSameUserRegistersAgain() throws Exception {
+        doThrow(new UserAlreadyExistsException("User already exists", HttpStatus.CONFLICT)).when(userService).register(userDto);
 
         mockMvc.perform(post(USER_REGISTER_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isConflict())
                 .andExpect(content().string("User already exists"));
     }
 }

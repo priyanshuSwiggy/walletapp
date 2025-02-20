@@ -1,6 +1,7 @@
 package com.swiggy.walletapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.dto.TransactionResponseDto;
 import com.swiggy.walletapp.enums.Currency;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.skyscreamer.jsonassert.JSONAssert;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,68 +47,70 @@ public class TransactionControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(transactionController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(transactionController)
+                .setControllerAdvice(new GlobalExceptionHandler()).build();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Test
-    void testCreateTransaction_IntraTransaction_WalletNotFound_ThrowsException() throws Exception {
+    void testCreateTransactionThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
         TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new WalletNotFoundException("Wallet not found")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string("Wallet not found"));
 
         assertThrows(WalletNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_IntraTransaction_UserNotFound_ThrowsException() throws Exception {
+    void testCreateTransactionThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
         TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UserNotFoundException("User not found")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_IntraTransaction_UnauthorizedUser_ThrowsException() throws Exception {
+    void testCreateTransactionThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
         TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Unauthorized access to wallet"));
 
         assertThrows(UnauthorizedAccessException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_Success_WhenDepositingValidAmount() throws Exception {
+    void testCreateTransactionReturnsCreatedWhenDepositingValidAmount() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
         TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
@@ -123,14 +127,14 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure_WhenDepositingInvalidAmount() throws Exception {
+    void testCreateTransactionThrowsInvalidAmountExceptionWhenDepositingInvalidAmount() throws Exception {
         double amount = -100.0;
         Currency currency = Currency.INR;
         TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new InvalidAmountException("Deposit amount must be positive")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new InvalidAmountException("Deposit amount must be positive", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,7 +146,26 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Success_WhenWithdrawingValidAmount() throws Exception {
+    void testCreateTransactionThrowsInvalidTransactionTypeExceptionWhenTransactionTypeIsInvalid() throws Exception {
+        double amount = -100.0;
+        Currency currency = Currency.INR;
+        TransactionDto transactionDto = new TransactionDto(null, amount, currency);
+        Long userId = 1L;
+        Long walletId = 1L;
+
+        doThrow(new InvalidTransactionTypeException("Invalid transaction type", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
+
+        mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(transactionDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid transaction type"));
+
+        assertThrows(InvalidTransactionTypeException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
+    }
+
+    @Test
+    void testCreateTransactionReturnsCreatedWhenWithdrawingValidAmount() throws Exception {
         double amount = 50.0;
         Currency currency = Currency.USD;
         TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
@@ -159,14 +182,14 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure_WhenWithdrawingInvalidAmount() throws Exception {
+    void testCreateTransactionThrowsInsufficientFundsExceptionWhenWithdrawingInvalidAmount() throws Exception {
         double amount = 500.0;
         Currency currency = Currency.USD;
         TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new InsufficientFundsException("Insufficient balance")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new InsufficientFundsException("Insufficient balance", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -178,7 +201,7 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Success_WhenTransferringValidAmount() throws Exception {
+    void testCreateTransactionReturnsCreatedWhenTransferringValidAmount() throws Exception {
         double amount = 100.0;
         Long recipientId = 2L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
@@ -195,14 +218,14 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure_WhenTransferAmountGreaterThanCurrentBalance() throws Exception {
+    void testCreateTransactionThrowsInsufficientFundsExceptionWhenTransferAmountGreaterThanCurrentBalance() throws Exception {
         double amount = 100.0;
         Long recipientId = 2L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new InsufficientFundsException("Transfer amount should be less than current balance")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new InsufficientFundsException("Transfer amount should be less than current balance", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -214,143 +237,143 @@ public class TransactionControllerTest {
     }
 
     @Test
-    void testCreateTransaction_Failure_WhenTransferringAmountToUnregisteredRecipientWallet() throws Exception {
+    void testCreateTransactionThrowsUserNotFoundExceptionWhenTransferringAmountToUnregisteredRecipientWallet() throws Exception {
         double amount = 100.0;
         Long recipientId = 2L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string("Amount can't be transferred to unregistered recipient wallet"));
 
         assertThrows(UserNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_InterTransaction_ThrowsWalletNotFoundException() throws Exception {
+    void testCreateTransactionThrowsWalletNotFoundExceptionWhenInterTransactionWalletNotFound() throws Exception {
         double amount = 100.0;
         Long recipientId = 1L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new WalletNotFoundException("Wallet not found")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string("Wallet not found"));
 
         assertThrows(WalletNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_InterTransaction_ThrowsUserNotFoundException() throws Exception {
+    void testCreateTransactionThrowsUserNotFoundExceptionWhenInterTransactionUserNotFound() throws Exception {
         double amount = 100.0;
         Long recipientId = 1L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UserNotFoundException("User not found")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().string("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testCreateTransaction_InterTransaction_ThrowsUnauthorizedUserException() throws Exception {
+    void testCreateTransactionThrowsUnauthorizedAccessExceptionWhenInterTransactionUnauthorizedUser() throws Exception {
         double amount = 100.0;
         Long recipientId = 1L;
         TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet")).when(transactionService).createTransaction(userId, walletId, transactionDto);
+        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(transactionDto)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Unauthorized access to wallet"));
 
         assertThrows(UnauthorizedAccessException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
 
     @Test
-    void testGetTransactions_ThrowsWalletNotFoundException() throws Exception {
+    void testGetTransactionsThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new WalletNotFoundException("Wallet not found")).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThrows(WalletNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
     }
 
     @Test
-    void testGetTransactions_ThrowsUserNotFoundException() throws Exception {
+    void testGetTransactionsThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UserNotFoundException("User not found")).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThrows(UserNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
     }
 
     @Test
-    void testGetTransactions_ThrowsUnauthorizedUserException() throws Exception {
+    void testGetTransactionsThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet")).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId));
     }
 
     @Test
-    void testGetTransactions_ThrowsNoTransactionsFoundException() throws Exception {
+    void testGetTransactionsThrowsNoTransactionsFoundExceptionWhenNoTransactionsFound() throws Exception {
         Long userId = 1L;
         Long walletId = 1L;
 
-        doThrow(new NoTransactionsFoundException("No transactions found for user")).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId));
     }
 
     @Test
-    void testGetTransactions_SuccessfullyFetchListOfTransactions() throws Exception {
+    void testGetTransactionsReturnsOkWhenSuccessfullyFetchListOfTransactions() throws Exception {
         Long recipientId = 2L;
         Long senderId = 1L;
         Long walletId = 1L;
