@@ -23,6 +23,7 @@ public class Wallet {
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
+    @Getter
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
