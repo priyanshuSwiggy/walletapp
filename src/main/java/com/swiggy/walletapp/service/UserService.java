@@ -23,7 +23,7 @@ public class UserService {
     public void register(UserDto userDto) {
         String username = userDto.getUsername();
         String password = userDto.getPassword();
-        Currency defaultCurrency = userDto.getCurrency();
+        Currency defaultCurrency = userDto.getCurrency() == null ? Currency.INR : userDto.getCurrency();
         User user = new User(username, password);
         userRepository.findByUsername(username).ifPresent(u -> {
             throw new UserAlreadyExistsException("User already exists", HttpStatus.CONFLICT);
