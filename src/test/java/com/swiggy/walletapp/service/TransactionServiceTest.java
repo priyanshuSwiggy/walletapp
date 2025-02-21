@@ -188,7 +188,7 @@ public class TransactionServiceTest {
         Long userId = 2L;
         Long walletId = 2L;
         Wallet wallet = new Wallet(new User(userId, "anotherUsername", "password"), Currency.USD);
-        IntraTransaction intraTransaction = new IntraTransaction(200.0, Currency.USD, TransactionType.DEPOSIT, userId);
+        IntraTransaction intraTransaction = new IntraTransaction(200.0, Currency.USD, TransactionType.WITHDRAWAL, userId);
         InterTransaction interTransaction = new InterTransaction(200.0, Currency.USD, TransactionType.TRANSFER, userId, 3L);
 
         when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
@@ -199,5 +199,66 @@ public class TransactionServiceTest {
         List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
 
         assertEquals(2, transactions.size());
+    }
+
+    @Test
+    public void testGetTransactionsByTransactionTypeReturnsListOfDepositTransactionsWhenTransactionTypeIsDeposit() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Wallet wallet = new Wallet(new User(userId, "username", "password"), Currency.INR);
+        IntraTransaction firstIntraTransaction = new IntraTransaction(100.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction secondIntraTransaction = new IntraTransaction(200.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction thirdIntraTransaction = new IntraTransaction(300.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction fourthIntraTransaction = new IntraTransaction(400.0, Currency.INR, TransactionType.WITHDRAWAL, userId);
+        InterTransaction interTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, userId, 2L);
+
+        when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
+        when(intraTransactionRepository.findByUserId(userId)).thenReturn(List.of(firstIntraTransaction, secondIntraTransaction, thirdIntraTransaction));
+
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+
+        assertEquals(3, transactions.size());
+    }
+
+    @Test
+    public void testGetTransactionsByTransactionTypeReturnsListOfTransactionsWhenTransactionTypeIsWithdrawal() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Wallet wallet = new Wallet(new User(userId, "username", "password"), Currency.INR);
+        IntraTransaction firstIntraTransaction = new IntraTransaction(100.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction secondIntraTransaction = new IntraTransaction(200.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction thirdIntraTransaction = new IntraTransaction(300.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction fourthIntraTransaction = new IntraTransaction(400.0, Currency.INR, TransactionType.WITHDRAWAL, userId);
+        InterTransaction interTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, userId, 2L);
+
+        when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
+        when(intraTransactionRepository.findByUserId(userId)).thenReturn(List.of(fourthIntraTransaction));
+
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+
+        assertEquals(1, transactions.size());
+    }
+
+    @Test
+    public void testGetTransactionsByTransactionTypeReturnsListOfTransactionsWhenTransactionTypeIsTransfer() {
+        Long userId = 1L;
+        Long walletId = 1L;
+        Wallet wallet = new Wallet(new User(userId, "username", "password"), Currency.INR);
+        IntraTransaction firstIntraTransaction = new IntraTransaction(100.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction secondIntraTransaction = new IntraTransaction(200.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction thirdIntraTransaction = new IntraTransaction(300.0, Currency.INR, TransactionType.DEPOSIT, userId);
+        IntraTransaction fourthIntraTransaction = new IntraTransaction(400.0, Currency.INR, TransactionType.WITHDRAWAL, userId);
+        InterTransaction firstInterTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, 1L, 2L);
+        InterTransaction secondInterTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, 1L, 2L);
+        InterTransaction thirdInterTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, 2L, 1L);
+        InterTransaction fourthInterTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, 2L, 1L);
+
+        when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
+        when(interTransactionRepository.findByRecipientId(userId)).thenReturn(List.of(thirdInterTransaction, fourthInterTransaction));
+        when(interTransactionRepository.findBySenderId(userId)).thenReturn(List.of(firstInterTransaction, secondInterTransaction));
+
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+
+        assertEquals(4, transactions.size());
     }
 }

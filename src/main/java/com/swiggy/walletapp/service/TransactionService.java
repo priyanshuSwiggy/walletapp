@@ -73,14 +73,33 @@ public class TransactionService {
     }
 
     public List<TransactionResponseDto> getTransactions(Long userId, Long walletId) {
-        if(walletService.isUnauthorizedUser(userId, walletId))
-            throw new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED);
+        checkUserAuthorization(userId, walletId);
 
         List<IntraTransaction> intraTransactions = intraTransactionRepository.findByUserId(userId);
         List<InterTransaction> interTransactions = new ArrayList<>();
         interTransactions.addAll(interTransactionRepository.findByRecipientId(userId));
         interTransactions.addAll(interTransactionRepository.findBySenderId(userId));
 
+        return mapToTransactionResponse(intraTransactions, interTransactions);
+    }
+
+    public List<TransactionResponseDto> getTransactionsByTransactionType(Long userId, Long walletId, TransactionType transactionType) {
+        checkUserAuthorization(userId, walletId);
+
+        List<InterTransaction> interTransactions = new ArrayList<>();
+        List<IntraTransaction> intraTransactions = new ArrayList<>();
+
+        if(transactionType == TransactionType.TRANSFER) {
+            interTransactions.addAll(interTransactionRepository.findByRecipientId(userId));
+            interTransactions.addAll(interTransactionRepository.findBySenderId(userId));
+        }
+        if(transactionType == TransactionType.DEPOSIT || transactionType == TransactionType.WITHDRAWAL)
+            intraTransactions = intraTransactionRepository.findByUserIdAndTransactionType(userId, transactionType);
+
+        return mapToTransactionResponse(intraTransactions, interTransactions);
+    }
+
+    private static List<TransactionResponseDto> mapToTransactionResponse(List<IntraTransaction> intraTransactions, List<InterTransaction> interTransactions) {
         if(intraTransactions.isEmpty() && interTransactions.isEmpty())
             throw new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND);
 
@@ -92,5 +111,10 @@ public class TransactionService {
             transactionResponse.add(new TransactionResponseDto(interTransaction));
         }
         return transactionResponse;
+    }
+
+    private void checkUserAuthorization(Long userId, Long walletId) {
+        if(walletService.isUnauthorizedUser(userId, walletId))
+            throw new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED);
     }
 }

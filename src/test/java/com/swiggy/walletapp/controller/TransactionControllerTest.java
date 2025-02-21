@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.swiggy.walletapp.enums.TransactionType.DEPOSIT;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -56,7 +57,7 @@ public class TransactionControllerTest {
     void testCreateTransactionThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
+        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
@@ -75,7 +76,7 @@ public class TransactionControllerTest {
     void testCreateTransactionThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
+        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
@@ -94,7 +95,7 @@ public class TransactionControllerTest {
     void testCreateTransactionThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
+        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
@@ -113,7 +114,7 @@ public class TransactionControllerTest {
     void testCreateTransactionReturnsCreatedWhenDepositingValidAmount() throws Exception {
         double amount = 100.0;
         Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
+        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
@@ -130,7 +131,7 @@ public class TransactionControllerTest {
     void testCreateTransactionThrowsInvalidAmountExceptionWhenDepositingInvalidAmount() throws Exception {
         double amount = -100.0;
         Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, amount, currency);
+        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
         Long userId = 1L;
         Long walletId = 1L;
 
@@ -321,11 +322,34 @@ public class TransactionControllerTest {
         Long senderId = 1L;
         Long walletId = 1L;
 
-        TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, TransactionType.DEPOSIT, recipientId, null, LocalDateTime.now());
-        TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 100.0, Currency.INR, TransactionType.DEPOSIT, recipientId, senderId, LocalDateTime.now());
+        TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, recipientId, null, LocalDateTime.now());
+        TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 100.0, Currency.INR, DEPOSIT, recipientId, senderId, LocalDateTime.now());
         when(transactionService.getTransactions(recipientId, walletId)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
 
         MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, recipientId, walletId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String expectedResponse = objectMapper.writeValueAsString(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
+        String actualResponse = mvcResult.getResponse().getContentAsString();
+
+        JSONAssert.assertEquals(expectedResponse, actualResponse, false);
+    }
+
+    @Test
+    void testGetTransactionsByTransactionTypeReturnsOkWhenSuccessfullyFetchListOfTransactions() throws Exception {
+        Long userId = 1L;
+        Long walletId = 1L;
+        TransactionType transactionType = DEPOSIT;
+
+        TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
+        TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 200.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
+        when(transactionService.getTransactionsByTransactionType(userId, walletId, transactionType)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
+
+        MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
+                        .param("transactionType", transactionType.name())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

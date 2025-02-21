@@ -2,6 +2,7 @@ package com.swiggy.walletapp.controller;
 
 import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.dto.TransactionResponseDto;
+import com.swiggy.walletapp.enums.TransactionType;
 import com.swiggy.walletapp.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,8 +36,13 @@ public class TransactionController {
                             schema = @Schema(implementation = TransactionResponseDto.class))})
     })
     @GetMapping
-    public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long userId, @PathVariable Long walletId) {
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+    public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long userId, @PathVariable Long walletId, @RequestParam(required = false) TransactionType transactionType) {
+        List<TransactionResponseDto> transactions;
+        if (transactionType != null) {
+            transactions = transactionService.getTransactionsByTransactionType(userId, walletId, transactionType);
+        } else {
+            transactions = transactionService.getTransactions(userId, walletId);
+        }
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
