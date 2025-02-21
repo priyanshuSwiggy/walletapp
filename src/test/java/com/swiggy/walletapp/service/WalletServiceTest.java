@@ -31,9 +31,8 @@ public class WalletServiceTest {
 
     @Test
     public void testIsUnauthorizedUserThrowsWalletNotFoundExceptionWhenWalletNotFound() {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
 
         assertThrows(WalletNotFoundException.class, () -> walletService.isUnauthorizedUser(userId, walletId));
@@ -41,10 +40,9 @@ public class WalletServiceTest {
 
     @Test
     public void testIsUnauthorizedUserThrowsUserNotFoundExceptionWhenUserNotFound() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        Wallet wallet = new Wallet();
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final Wallet wallet = new Wallet();
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -53,12 +51,11 @@ public class WalletServiceTest {
 
     @Test
     public void testIsUnauthorizedUserReturnsTrueWhenUnauthorizedUser() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        User otherUser = new User("otherUsername", "password");
-        Wallet wallet = new Wallet(otherUser, Currency.INR);
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final User otherUser = new User("otherUsername", "password");
+        final Wallet wallet = new Wallet(otherUser, Currency.INR);
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -67,11 +64,10 @@ public class WalletServiceTest {
 
     @Test
     public void testIsUnauthorizedUserReturnsFalseWhenAuthorizedUser() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(user, Currency.INR);
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(user, Currency.INR);
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -80,9 +76,8 @@ public class WalletServiceTest {
 
     @Test
     public void testFetchUserWalletThrowsWalletNotFoundExceptionWhenWalletNotFound() {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
 
         assertThrows(WalletNotFoundException.class, () -> walletService.fetchUserWallet(userId, walletId));
@@ -90,9 +85,8 @@ public class WalletServiceTest {
 
     @Test
     public void testFetchUserWalletThrowsUserNotFoundExceptionWhenUserNotFound() {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(new Wallet()));
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -101,12 +95,11 @@ public class WalletServiceTest {
 
     @Test
     public void testFetchUserWalletThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        User otherUser = new User("otherUsername", "password");
-        Wallet wallet = new Wallet(otherUser, Currency.INR);
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final User otherUser = new User("otherUsername", "password");
+        final Wallet wallet = new Wallet(otherUser, Currency.INR);
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -115,11 +108,10 @@ public class WalletServiceTest {
 
     @Test
     public void testFetchUserWalletReturnsWalletWhenAuthorizedUser() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(user, Currency.INR);
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(user, Currency.INR);
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -130,12 +122,11 @@ public class WalletServiceTest {
 
     @Test
     public void testDepositIncreasesBalanceFrom1000To1100WhenDepositing100INRToINR() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(1000.0, user, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(1000.0, user, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -147,12 +138,11 @@ public class WalletServiceTest {
 
     @Test
     public void testDepositIncreasesBalanceFrom1000To9300WhenDepositing100USDToINR() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(1000.0, user, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(1000.0, user, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -164,12 +154,11 @@ public class WalletServiceTest {
 
     @Test
     public void testWithdrawDecreasesBalanceFrom1000To900WhenWithdrawing100INRToINR() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(1000.0, user, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(1000.0, user, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -181,12 +170,11 @@ public class WalletServiceTest {
 
     @Test
     public void testWithdrawDecreasesBalanceFrom1000To917WhenWithdrawing1USDToINR() {
-        Long userId = 1L;
-        Long walletId = 1L;
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(1000.0, user, Currency.INR);
-        double amount = 1.0;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(1000.0, user, Currency.INR);
+        final double amount = 1.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
@@ -198,13 +186,12 @@ public class WalletServiceTest {
 
     @Test
     public void testTransferThrowsWalletNotFoundExceptionWhenRecipientWalletNotFound() {
-        Long userId = 1L;
-        Long senderWalletId = 1L;
-        Long recipientWalletId = 2L;
-        User sender = new User(userId, "senderUsername", "password");
-        Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long senderWalletId = 1L;
+        final Long recipientWalletId = 2L;
+        final User sender = new User(userId, "senderUsername", "password");
+        final Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.empty());
@@ -214,14 +201,13 @@ public class WalletServiceTest {
 
     @Test
     public void testTransferThrowsUserNotFoundExceptionWhenRecipientUserNotFound() {
-        Long userId = 1L;
-        Long senderWalletId = 1L;
-        Long recipientWalletId = 2L;
-        User sender = new User(userId, "senderUsername", "password");
-        Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
-        Wallet recipientWallet = new Wallet(500.0, new User(2L, "recipientUsername", "password"), Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long senderWalletId = 1L;
+        final Long recipientWalletId = 2L;
+        final User sender = new User(userId, "senderUsername", "password");
+        final Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
+        final Wallet recipientWallet = new Wallet(500.0, new User(2L, "recipientUsername", "password"), Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
@@ -232,16 +218,15 @@ public class WalletServiceTest {
 
     @Test
     public void testTransferDecreasesSenderBalanceFrom1000To900AndIncreasesRecipientBalanceFrom500To600WhenTransferring100INRToINR() {
-        Long userId = 1L;
-        Long senderWalletId = 1L;
-        Long recipientUserId = 2L;
-        Long recipientWalletId = 2L;
-        User sender = new User(userId, "senderUsername", "password");
-        User recipient = new User(recipientUserId, "recipientUsername", "password");
-        Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
-        Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long senderWalletId = 1L;
+        final Long recipientUserId = 2L;
+        final Long recipientWalletId = 2L;
+        final User sender = new User(userId, "senderUsername", "password");
+        final User recipient = new User(recipientUserId, "recipientUsername", "password");
+        final Wallet senderWallet = new Wallet(1000.0, sender, Currency.INR);
+        final Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
@@ -258,16 +243,15 @@ public class WalletServiceTest {
 
     @Test
     public void testTransferDecreasesSenderBalanceFrom1000To900AndIncreasesRecipientBalanceFrom500To1333WhenTransferring100USDToINR() {
-        Long userId = 1L;
-        Long senderWalletId = 1L;
-        Long recipientUserId = 2L;
-        Long recipientWalletId = 2L;
-        User sender = new User(userId, "senderUsername", "password");
-        User recipient = new User(recipientUserId, "recipientUsername", "password");
-        Wallet senderWallet = new Wallet(1000.0, sender, Currency.USD);
-        Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
-        double amount = 100.0;
-
+        final Long userId = 1L;
+        final Long senderWalletId = 1L;
+        final Long recipientUserId = 2L;
+        final Long recipientWalletId = 2L;
+        final User sender = new User(userId, "senderUsername", "password");
+        final User recipient = new User(recipientUserId, "recipientUsername", "password");
+        final Wallet senderWallet = new Wallet(1000.0, sender, Currency.USD);
+        final Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
+        final double amount = 100.0;
         when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));

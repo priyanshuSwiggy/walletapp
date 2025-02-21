@@ -33,9 +33,9 @@ public class UserServiceTest {
 
     @Test
     public void testRegisterNewUserSuccessfullyRegisters() {
-        UserDto userDto = new UserDto("username", "password", Currency.INR);
-        User user = new User("username", "password");
-        Wallet wallet = new Wallet(user, Currency.INR);
+        final UserDto userDto = new UserDto("username", "password", Currency.INR);
+        final User user = new User("username", "password");
+        final Wallet wallet = new Wallet(user, Currency.INR);
         when(userRepository.findByUsername("username")).thenReturn(Optional.empty());
 
         userService.register(userDto);
@@ -47,8 +47,8 @@ public class UserServiceTest {
 
     @Test
     public void testRegisterUserThrowsExceptionWhenUserAlreadyExists() {
-        UserDto userDto = new UserDto("username", "password", Currency.INR);
-        User user = new User("username", "password");
+        final UserDto userDto = new UserDto("username", "password", Currency.INR);
+        final User user = new User("username", "password");
         when(userRepository.findByUsername("username")).thenReturn(Optional.of(user));
 
         assertThrows(UserAlreadyExistsException.class, () -> userService.register(userDto));

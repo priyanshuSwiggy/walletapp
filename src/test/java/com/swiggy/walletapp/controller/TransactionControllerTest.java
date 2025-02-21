@@ -55,12 +55,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
-        double amount = 100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -74,12 +73,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
-        double amount = 100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -93,12 +91,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
-        double amount = 100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -112,12 +109,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionReturnsCreatedWhenDepositingValidAmount() throws Exception {
-        double amount = 100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -129,12 +125,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsInvalidAmountExceptionWhenDepositingInvalidAmount() throws Exception {
-        double amount = -100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = -100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(DEPOSIT, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new InvalidAmountException("Deposit amount must be positive", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -148,12 +143,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsInvalidTransactionTypeExceptionWhenTransactionTypeIsInvalid() throws Exception {
-        double amount = -100.0;
-        Currency currency = Currency.INR;
-        TransactionDto transactionDto = new TransactionDto(null, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = -100.0;
+        final Currency currency = Currency.INR;
+        final TransactionDto transactionDto = new TransactionDto(null, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new InvalidTransactionTypeException("Invalid transaction type", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -167,12 +161,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionReturnsCreatedWhenWithdrawingValidAmount() throws Exception {
-        double amount = 50.0;
-        Currency currency = Currency.USD;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 50.0;
+        final Currency currency = Currency.USD;
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -184,12 +177,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsInsufficientFundsExceptionWhenWithdrawingInvalidAmount() throws Exception {
-        double amount = 500.0;
-        Currency currency = Currency.USD;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 500.0;
+        final Currency currency = Currency.USD;
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, amount, currency);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new InsufficientFundsException("Insufficient balance", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -203,12 +195,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionReturnsCreatedWhenTransferringValidAmount() throws Exception {
-        double amount = 100.0;
-        Long recipientId = 2L;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Long recipientId = 2L;
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doNothing().when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -220,12 +211,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsInsufficientFundsExceptionWhenTransferAmountGreaterThanCurrentBalance() throws Exception {
-        double amount = 100.0;
-        Long recipientId = 2L;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Long recipientId = 2L;
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new InsufficientFundsException("Transfer amount should be less than current balance", HttpStatus.BAD_REQUEST)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -239,12 +229,11 @@ public class TransactionControllerTest {
 
     @Test
     void testCreateTransactionThrowsUserNotFoundExceptionWhenTransferringAmountToUnregisteredRecipientWallet() throws Exception {
-        double amount = 100.0;
-        Long recipientId = 2L;
-        TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final double amount = 100.0;
+        final Long recipientId = 2L;
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, amount, recipientId);
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new UserNotFoundException("Amount can't be transferred to unregistered recipient wallet", HttpStatus.NOT_FOUND)).when(transactionService).createTransaction(userId, walletId, transactionDto);
 
         mockMvc.perform(post(TRANSACTIONS_URL, userId, walletId)
@@ -258,9 +247,8 @@ public class TransactionControllerTest {
 
     @Test
     void testGetTransactionsThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
@@ -273,9 +261,8 @@ public class TransactionControllerTest {
 
     @Test
     void testGetTransactionsThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
@@ -288,9 +275,8 @@ public class TransactionControllerTest {
 
     @Test
     void testGetTransactionsThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
@@ -303,9 +289,8 @@ public class TransactionControllerTest {
 
     @Test
     void testGetTransactionsThrowsNoTransactionsFoundExceptionWhenNoTransactionsFound() throws Exception {
-        Long userId = 1L;
-        Long walletId = 1L;
-
+        final Long userId = 1L;
+        final Long walletId = 1L;
         doThrow(new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
@@ -318,12 +303,11 @@ public class TransactionControllerTest {
 
     @Test
     void testGetTransactionsReturnsOkWhenSuccessfullyFetchListOfTransactions() throws Exception {
-        Long recipientId = 2L;
-        Long senderId = 1L;
-        Long walletId = 1L;
-
-        TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, recipientId, null, LocalDateTime.now());
-        TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 100.0, Currency.INR, DEPOSIT, recipientId, senderId, LocalDateTime.now());
+        final Long recipientId = 2L;
+        final Long senderId = 1L;
+        final Long walletId = 1L;
+        final TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, recipientId, null, LocalDateTime.now());
+        final TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 100.0, Currency.INR, DEPOSIT, recipientId, senderId, LocalDateTime.now());
         when(transactionService.getTransactions(recipientId, walletId)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
 
         MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, recipientId, walletId)
@@ -334,18 +318,16 @@ public class TransactionControllerTest {
 
         String expectedResponse = objectMapper.writeValueAsString(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
         String actualResponse = mvcResult.getResponse().getContentAsString();
-
         JSONAssert.assertEquals(expectedResponse, actualResponse, false);
     }
 
     @Test
     void testGetTransactionsByTransactionTypeReturnsOkWhenSuccessfullyFetchListOfTransactions() throws Exception {
-        Long userId = 1L;
-        Long walletId = 1L;
-        TransactionType transactionType = DEPOSIT;
-
-        TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
-        TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 200.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
+        final Long userId = 1L;
+        final Long walletId = 1L;
+        final TransactionType transactionType = DEPOSIT;
+        final TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
+        final TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 200.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
         when(transactionService.getTransactionsByTransactionType(userId, walletId, transactionType)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
 
         MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
@@ -357,7 +339,6 @@ public class TransactionControllerTest {
 
         String expectedResponse = objectMapper.writeValueAsString(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
         String actualResponse = mvcResult.getResponse().getContentAsString();
-
         JSONAssert.assertEquals(expectedResponse, actualResponse, false);
     }
 }
