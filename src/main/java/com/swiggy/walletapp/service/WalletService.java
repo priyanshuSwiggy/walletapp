@@ -11,6 +11,7 @@ import com.swiggy.walletapp.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -33,6 +34,7 @@ public class WalletService {
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND));
     }
 
+    @Transactional
     public Wallet deposit(Long userId, Long walletId, Currency currency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
         double convertedAmount = wallet.convertedAmount(currency, amount);
@@ -40,6 +42,7 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    @Transactional
     public Wallet withdraw(Long userId, Long walletId, Currency currency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
         double convertedAmount = wallet.convertedAmount(currency, amount);
@@ -47,6 +50,7 @@ public class WalletService {
         return walletRepository.save(wallet);
     }
 
+    @Transactional
     public Wallet transfer(Long userId, Long senderWalletId, double amount, Long recipientWalletId) {
         Wallet senderWallet = fetchUserWallet(userId, senderWalletId);
         Currency senderCurrency = senderWallet.getCurrency();
