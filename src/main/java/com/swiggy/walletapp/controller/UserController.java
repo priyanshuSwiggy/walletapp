@@ -22,17 +22,16 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Register a new user.",
-            description = "Register a new user in the database.",
-            tags = {"Register user"})
-    @Parameter(name = "userDto", description = "The Dto containing information for registering a new user.")
+    @Operation(summary = "Register a new user",
+            description = "Register a new user in the database")
+    @Parameter(name = "userDto", description = "The Dto containing information for registering a new user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
-                    description = "Successfully registered a new user.",
+                    description = "Successfully registered a new user",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = UserDto.class))}),
             @ApiResponse(responseCode = "400",
-                    description = "Invalid input for registering a user.")
+                    description = "Invalid input for registering a user")
     })
     @PostMapping
     public ResponseEntity<String> registerClient(@RequestBody UserDto userDto) {

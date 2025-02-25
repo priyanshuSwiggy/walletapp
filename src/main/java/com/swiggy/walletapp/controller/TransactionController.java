@@ -26,37 +26,30 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @Operation(summary = "Retrieve all transactions.",
-            description = "Retrieve all the transactions for a specific user and wallet.",
-            tags = {"Fetch all transactions"})
+    @Operation(summary = "Retrieve all transactions",
+            description = "Retrieve all the transactions for a specific user and wallet")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
-                    description = "Successfully retrieved the transactions.",
+                    description = "Successfully retrieved the transactions",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = TransactionResponseDto.class))})
     })
     @GetMapping
     public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long userId, @PathVariable Long walletId, @RequestParam(required = false) TransactionType transactionType) {
-        List<TransactionResponseDto> transactions;
-        if (transactionType != null) {
-            transactions = transactionService.getTransactionsByTransactionType(userId, walletId, transactionType);
-        } else {
-            transactions = transactionService.getTransactions(userId, walletId);
-        }
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, transactionType);
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
-    @Operation(summary = "Create a new transaction.",
-            description = "Create a new transaction for a specific user and wallet.",
-            tags = {"Create transaction"})
-    @Parameter(name = "transactionDto", description = "The Dto containing information for creating a new transaction.")
+    @Operation(summary = "Create a new transaction",
+            description = "Create a new transaction for a specific user and wallet")
+    @Parameter(name = "transactionDto", description = "The Dto containing information for creating a new transaction")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201",
-                    description = "Successfully created a new transaction.",
+                    description = "Successfully created a new transaction",
                     content = {@Content(mediaType = "application/json",
                             schema = @Schema(implementation = TransactionDto.class))}),
             @ApiResponse(responseCode = "400",
-                    description = "Invalid input for creating a transaction.")
+                    description = "Invalid input for creating a transaction")
     })
     @PostMapping
     public ResponseEntity<String> createTransaction(@PathVariable Long userId, @PathVariable Long walletId, @RequestBody TransactionDto transactionDto) {

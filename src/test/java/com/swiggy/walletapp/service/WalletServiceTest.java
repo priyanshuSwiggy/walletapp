@@ -21,12 +21,14 @@ public class WalletServiceTest {
     private UserRepository userRepository;
     private WalletRepository walletRepository;
     private WalletService walletService;
+    private CurrencyConversionService currencyConversionService;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
         walletRepository = mock(WalletRepository.class);
-        walletService = new WalletService(userRepository, walletRepository);
+        currencyConversionService = mock(CurrencyConversionService.class);
+        walletService = new WalletService(userRepository, walletRepository, currencyConversionService);
     }
 
     @Test
@@ -129,6 +131,7 @@ public class WalletServiceTest {
         final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(currencyConversionService.convertCurrency("INR", "INR", amount)).thenReturn(100.0);
 
         walletService.deposit(userId, walletId, Currency.INR, amount);
 
@@ -145,6 +148,7 @@ public class WalletServiceTest {
         final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(currencyConversionService.convertCurrency("INR", "USD", amount)).thenReturn(8300.0);
 
         walletService.deposit(userId, walletId, Currency.USD, amount);
 
@@ -161,6 +165,7 @@ public class WalletServiceTest {
         final double amount = 100.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(currencyConversionService.convertCurrency("INR", "INR", amount)).thenReturn(100.0);
 
         walletService.withdraw(userId, walletId, Currency.INR, amount);
 
@@ -177,6 +182,7 @@ public class WalletServiceTest {
         final double amount = 1.0;
         when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(currencyConversionService.convertCurrency("INR", "USD", amount)).thenReturn(83.0);
 
         walletService.withdraw(userId, walletId, Currency.USD, amount);
 
@@ -195,6 +201,7 @@ public class WalletServiceTest {
         when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.empty());
+        when(currencyConversionService.convertCurrency("INR", "INR", amount)).thenReturn(100.0);
 
         assertThrows(WalletNotFoundException.class, () -> walletService.transfer(userId, senderWalletId, amount, recipientWalletId));
     }
@@ -212,6 +219,7 @@ public class WalletServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
         when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.empty());
+        when(currencyConversionService.convertCurrency("INR", "INR", amount)).thenReturn(100.0);
 
         assertThrows(UserNotFoundException.class, () -> walletService.transfer(userId, senderWalletId, amount, recipientWalletId));
     }
@@ -232,6 +240,7 @@ public class WalletServiceTest {
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
         when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
         when(userRepository.findById(recipientUserId)).thenReturn(Optional.of(recipient));
+        when(currencyConversionService.convertCurrency("INR", "INR", amount)).thenReturn(100.0);
 
         walletService.transfer(userId, senderWalletId, amount, recipientWalletId);
 
@@ -257,6 +266,10 @@ public class WalletServiceTest {
         when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
         when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
         when(userRepository.findById(recipientUserId)).thenReturn(Optional.of(recipient));
+        when(currencyConversionService.convertCurrency("USD", "USD", amount)).thenReturn(100.0);
+        when(currencyConversionService.convertCurrency("USD", "INR", amount)).thenReturn(8300.0);
+        when(currencyConversionService.convertCurrency("INR", "INR", 8300.0)).thenReturn(8300.0);
+
 
         walletService.transfer(userId, senderWalletId, amount, recipientWalletId);
 

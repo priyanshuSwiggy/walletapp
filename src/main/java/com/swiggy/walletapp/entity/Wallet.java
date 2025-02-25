@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
-import java.math.BigDecimal;
-
 @Entity
 @Table(name = "wallet")
 @RequiredArgsConstructor

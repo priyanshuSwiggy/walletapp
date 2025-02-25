@@ -41,7 +41,7 @@ public class TransactionServiceTest {
     public void testCreateTransactionThrowsInvalidTransactionTypeExceptionWhenTransactionTypeIsInvalid() {
         final Long userId = 1L;
         final Long walletId = 1L;
-        final TransactionDto transactionDto = new TransactionDto(TransactionType.DEFAULT, 100.0, Currency.INR);
+        final TransactionDto transactionDto = new TransactionDto(TransactionType.INVALID, 100.0, Currency.INR);
 
         assertThrows(InvalidTransactionTypeException.class, () -> transactionService.createTransaction(userId, walletId, transactionDto));
     }
@@ -142,7 +142,7 @@ public class TransactionServiceTest {
         final Long walletId = 1L;
         when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(true);
 
-        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
@@ -154,7 +154,7 @@ public class TransactionServiceTest {
         when(interTransactionRepository.findByRecipientId(userId)).thenReturn(List.of());
         when(interTransactionRepository.findBySenderId(userId)).thenReturn(List.of());
 
-        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
@@ -169,7 +169,7 @@ public class TransactionServiceTest {
         when(interTransactionRepository.findByRecipientId(userId)).thenReturn(List.of(interTransaction));
         when(interTransactionRepository.findBySenderId(userId)).thenReturn(List.of());
 
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, null);
 
         assertEquals(2, transactions.size());
     }
@@ -186,7 +186,7 @@ public class TransactionServiceTest {
         when(interTransactionRepository.findByRecipientId(userId)).thenReturn(List.of(interTransaction));
         when(interTransactionRepository.findBySenderId(userId)).thenReturn(List.of());
 
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, null);
 
         assertEquals(2, transactions.size());
     }
@@ -202,9 +202,9 @@ public class TransactionServiceTest {
         final IntraTransaction fourthIntraTransaction = new IntraTransaction(400.0, Currency.INR, TransactionType.WITHDRAWAL, userId);
         final InterTransaction interTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, userId, 2L);
         when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
-        when(intraTransactionRepository.findByUserId(userId)).thenReturn(List.of(firstIntraTransaction, secondIntraTransaction, thirdIntraTransaction));
+        when(intraTransactionRepository.findByUserIdAndTransactionType(userId, TransactionType.DEPOSIT)).thenReturn(List.of(firstIntraTransaction, secondIntraTransaction, thirdIntraTransaction));
 
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, TransactionType.DEPOSIT);
 
         assertEquals(3, transactions.size());
         assertEquals(TransactionType.DEPOSIT, transactions.get(0).getTransactionType());
@@ -223,9 +223,9 @@ public class TransactionServiceTest {
         final IntraTransaction fourthIntraTransaction = new IntraTransaction(400.0, Currency.INR, TransactionType.WITHDRAWAL, userId);
         final InterTransaction interTransaction = new InterTransaction(100.0, Currency.INR, TransactionType.TRANSFER, userId, 2L);
         when(walletService.isUnauthorizedUser(userId, walletId)).thenReturn(false);
-        when(intraTransactionRepository.findByUserId(userId)).thenReturn(List.of(fourthIntraTransaction));
+        when(intraTransactionRepository.findByUserIdAndTransactionType(userId, TransactionType.WITHDRAWAL)).thenReturn(List.of(fourthIntraTransaction));
 
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, TransactionType.WITHDRAWAL);
 
         assertEquals(1, transactions.size());
         assertEquals(TransactionType.WITHDRAWAL, transactions.get(0).getTransactionType());
@@ -248,7 +248,7 @@ public class TransactionServiceTest {
         when(interTransactionRepository.findByRecipientId(userId)).thenReturn(List.of(thirdInterTransaction, fourthInterTransaction));
         when(interTransactionRepository.findBySenderId(userId)).thenReturn(List.of(firstInterTransaction, secondInterTransaction));
 
-        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId);
+        List<TransactionResponseDto> transactions = transactionService.getTransactions(userId, walletId, TransactionType.TRANSFER);
 
         assertEquals(4, transactions.size());
         assertEquals(TransactionType.TRANSFER, transactions.get(0).getTransactionType());

@@ -249,56 +249,56 @@ public class TransactionControllerTest {
     void testGetTransactionsThrowsWalletNotFoundExceptionWhenWalletNotFound() throws Exception {
         final Long userId = 1L;
         final Long walletId = 1L;
-        doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId, null);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        assertThrows(WalletNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(WalletNotFoundException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
     void testGetTransactionsThrowsUserNotFoundExceptionWhenUserNotFound() throws Exception {
         final Long userId = 1L;
         final Long walletId = 1L;
-        doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId, null);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        assertThrows(UserNotFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(UserNotFoundException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
     void testGetTransactionsThrowsUnauthorizedAccessExceptionWhenUnauthorizedUser() throws Exception {
         final Long userId = 1L;
         final Long walletId = 1L;
-        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new UnauthorizedAccessException("Unauthorized access to wallet", HttpStatus.UNAUTHORIZED)).when(transactionService).getTransactions(userId, walletId, null);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(UnauthorizedAccessException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
     void testGetTransactionsThrowsNoTransactionsFoundExceptionWhenNoTransactionsFound() throws Exception {
         final Long userId = 1L;
         final Long walletId = 1L;
-        doThrow(new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId);
+        doThrow(new NoTransactionsFoundException("No transactions found for user", HttpStatus.NOT_FOUND)).when(transactionService).getTransactions(userId, walletId, null);
 
         mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
-        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId));
+        assertThrows(NoTransactionsFoundException.class, () -> transactionService.getTransactions(userId, walletId, null));
     }
 
     @Test
@@ -308,7 +308,7 @@ public class TransactionControllerTest {
         final Long walletId = 1L;
         final TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, recipientId, null, LocalDateTime.now());
         final TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 100.0, Currency.INR, DEPOSIT, recipientId, senderId, LocalDateTime.now());
-        when(transactionService.getTransactions(recipientId, walletId)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
+        when(transactionService.getTransactions(recipientId, walletId, null)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
 
         MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, recipientId, walletId)
                         .accept(MediaType.APPLICATION_JSON))
@@ -328,7 +328,7 @@ public class TransactionControllerTest {
         final TransactionType transactionType = DEPOSIT;
         final TransactionResponseDto firstTransactionResponseDto = new TransactionResponseDto(1L, 100.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
         final TransactionResponseDto secondTransactionResponseDto = new TransactionResponseDto(2L, 200.0, Currency.INR, DEPOSIT, userId, null, LocalDateTime.now());
-        when(transactionService.getTransactionsByTransactionType(userId, walletId, transactionType)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
+        when(transactionService.getTransactions(userId, walletId, transactionType)).thenReturn(List.of(firstTransactionResponseDto, secondTransactionResponseDto));
 
         MvcResult mvcResult = mockMvc.perform(get(TRANSACTIONS_URL, userId, walletId)
                         .param("transactionType", transactionType.name())

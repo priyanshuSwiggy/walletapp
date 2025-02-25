@@ -72,8 +72,11 @@ public class TransactionService {
         interTransactionRepository.save(interTransaction);
     }
 
-    public List<TransactionResponseDto> getTransactions(Long userId, Long walletId) {
+    public List<TransactionResponseDto> getTransactions(Long userId, Long walletId, TransactionType transactionType) {
         checkUserAuthorization(userId, walletId);
+
+        if(transactionType != null)
+            return getTransactionsByTransactionType(userId, walletId, transactionType);
 
         List<IntraTransaction> intraTransactions = intraTransactionRepository.findByUserId(userId);
         List<InterTransaction> interTransactions = new ArrayList<>();
