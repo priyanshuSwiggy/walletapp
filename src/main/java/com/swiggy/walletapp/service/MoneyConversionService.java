@@ -26,5 +26,4 @@ public class MoneyConversionService {
         MoneyConverterOuterClass.ConvertResponse response = moneyConverterStub.convert(request);
         return new MoneyDto(response.getConverted().getCurrency(), response.getConverted().getAmount());
     }
-
 }
