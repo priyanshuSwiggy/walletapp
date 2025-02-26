@@ -37,23 +37,21 @@ public class WalletService {
     }
 
     @Transactional
-    public Wallet deposit(Long userId, Long walletId, Currency toCurrency, double amount) {
+    public Wallet deposit(Long userId, Long walletId, Currency fromCurrency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
-        Currency fromCurrency = wallet.getCurrency();
+        Currency toCurrency = wallet.getCurrency();
         MoneyDto money = new MoneyDto(fromCurrency.toString(), amount);
         MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
-//        double convertedAmount = moneyConversionService.convertMoney(fromCurrency.toString(), toCurrency.toString(), amount);
         wallet.deposit(convertedMoney.getAmount());
         return walletRepository.save(wallet);
     }
 
     @Transactional
-    public Wallet withdraw(Long userId, Long walletId, Currency toCurrency, double amount) {
+    public Wallet withdraw(Long userId, Long walletId, Currency fromCurrency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
-        Currency fromCurrency = wallet.getCurrency();
+        Currency toCurrency = wallet.getCurrency();
         MoneyDto money = new MoneyDto(fromCurrency.toString(), amount);
         MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
-//        double convertedAmount = currencyConversionService.convertMoney(fromCurrency.toString(), toCurrency.toString(), amount);
         wallet.withdraw(convertedMoney.getAmount());
         return walletRepository.save(wallet);
     }
@@ -66,11 +64,6 @@ public class WalletService {
 
         Wallet recipientWallet = walletRepository.findById(recipientWalletId).orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found", HttpStatus.NOT_FOUND));
         User recipientUser = userRepository.findByWallet(recipientWallet).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
-        Currency toCurrency = recipientWallet.getCurrency();
-        MoneyDto money = new MoneyDto(senderCurrency.toString(), amount);
-        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
-//        double convertedRecipientAmount = currencyConversionService.convertMoney(senderCurrency.toString(), toCurrency.toString(), amount);
-        return deposit(recipientUser.getId(), recipientWalletId, recipientWallet.getCurrency(), convertedMoney.getAmount());
-//        return null;
+        return deposit(recipientUser.getId(), recipientWalletId, senderCurrency, amount);
     }
 }
