@@ -1,5 +1,6 @@
 package com.swiggy.walletapp.service;
 
+import com.swiggy.walletapp.dto.MoneyDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -19,7 +20,7 @@ public class WalletService {
 
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
-    private final CurrencyConversionService currencyConversionService;
+    private final MoneyConversionService moneyConversionService;
 
     public boolean isUnauthorizedUser(Long userId, Long walletId) {
         Wallet wallet = walletRepository.findById(walletId).orElseThrow(() -> new WalletNotFoundException("Wallet not found", HttpStatus.NOT_FOUND));
@@ -39,8 +40,10 @@ public class WalletService {
     public Wallet deposit(Long userId, Long walletId, Currency toCurrency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
         Currency fromCurrency = wallet.getCurrency();
-        double convertedAmount = currencyConversionService.convertCurrency(fromCurrency.toString(), toCurrency.toString(), amount);
-        wallet.deposit(convertedAmount);
+        MoneyDto money = new MoneyDto(fromCurrency.toString(), amount);
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
+//        double convertedAmount = moneyConversionService.convertMoney(fromCurrency.toString(), toCurrency.toString(), amount);
+        wallet.deposit(convertedMoney.getAmount());
         return walletRepository.save(wallet);
     }
 
@@ -48,8 +51,10 @@ public class WalletService {
     public Wallet withdraw(Long userId, Long walletId, Currency toCurrency, double amount) {
         Wallet wallet = fetchUserWallet(userId, walletId);
         Currency fromCurrency = wallet.getCurrency();
-        double convertedAmount = currencyConversionService.convertCurrency(fromCurrency.toString(), toCurrency.toString(), amount);
-        wallet.withdraw(convertedAmount);
+        MoneyDto money = new MoneyDto(fromCurrency.toString(), amount);
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
+//        double convertedAmount = currencyConversionService.convertMoney(fromCurrency.toString(), toCurrency.toString(), amount);
+        wallet.withdraw(convertedMoney.getAmount());
         return walletRepository.save(wallet);
     }
 
@@ -62,7 +67,10 @@ public class WalletService {
         Wallet recipientWallet = walletRepository.findById(recipientWalletId).orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found", HttpStatus.NOT_FOUND));
         User recipientUser = userRepository.findByWallet(recipientWallet).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
         Currency toCurrency = recipientWallet.getCurrency();
-        double convertedRecipientAmount = currencyConversionService.convertCurrency(senderCurrency.toString(), toCurrency.toString(), amount);
-        return deposit(recipientUser.getId(), recipientWalletId, recipientWallet.getCurrency(), convertedRecipientAmount);
+        MoneyDto money = new MoneyDto(senderCurrency.toString(), amount);
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, toCurrency.toString());
+//        double convertedRecipientAmount = currencyConversionService.convertMoney(senderCurrency.toString(), toCurrency.toString(), amount);
+        return deposit(recipientUser.getId(), recipientWalletId, recipientWallet.getCurrency(), convertedMoney.getAmount());
+//        return null;
     }
 }
