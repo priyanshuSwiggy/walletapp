@@ -27,7 +27,7 @@ public class Wallet {
     private Currency currency;
 
     @Getter
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

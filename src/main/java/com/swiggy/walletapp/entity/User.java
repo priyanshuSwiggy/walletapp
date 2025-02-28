@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
+
 @Entity
 @Table(name = "\"user\"")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -22,8 +24,8 @@ public class User {
 
     private String password;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Wallet wallet;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Wallet> wallet;
 
     public User(String username, String password) {
         this.username = username;

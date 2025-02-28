@@ -1,6 +1,7 @@
 package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.MoneyDto;
+import com.swiggy.walletapp.dto.WalletRequestDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -65,5 +66,11 @@ public class WalletService {
         Wallet recipientWallet = walletRepository.findById(recipientWalletId).orElseThrow(() -> new WalletNotFoundException("Recipient wallet not found", HttpStatus.NOT_FOUND));
         User recipientUser = userRepository.findByWallet(recipientWallet).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
         return deposit(recipientUser.getId(), recipientWalletId, senderCurrency, amount);
+    }
+
+    public void createWallet(Long userId, WalletRequestDto walletRequestDto) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+        Wallet wallet = new Wallet(user, walletRequestDto.getCurrency());
+        walletRepository.save(wallet);
     }
 }
