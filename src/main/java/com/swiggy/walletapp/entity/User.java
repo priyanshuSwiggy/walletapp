@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Table(name = "\"user\"")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-@ToString
 public class User {
     @Getter
     @Id

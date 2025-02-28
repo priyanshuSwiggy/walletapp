@@ -1,5 +1,6 @@
 package com.swiggy.walletapp.service;
 
+import com.swiggy.walletapp.dto.MoneyDto;
 import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.dto.TransactionResponseDto;
 import com.swiggy.walletapp.entity.InterTransaction;
@@ -25,6 +26,7 @@ public class TransactionService {
 
     private final IntraTransactionRepository intraTransactionRepository;
     private final InterTransactionRepository interTransactionRepository;
+    private final MoneyConversionService moneyConversionService;
     private final WalletService walletService;
 
     public void createTransaction(Long userId, Long walletId, TransactionDto transactionDto) {
@@ -45,7 +47,9 @@ public class TransactionService {
 
     private void withdrawal(Long userId, Long walletTd, TransactionDto transactionDto) {
         Wallet wallet = walletService.withdraw(userId, walletTd, transactionDto.getCurrency(), transactionDto.getAmount());
-        double convertedAmount = wallet.convertedAmount(transactionDto.getCurrency(), transactionDto.getAmount());
+        MoneyDto money = new MoneyDto(transactionDto.getCurrency().toString(), transactionDto.getAmount());
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, wallet.getCurrency().toString());
+        double convertedAmount = convertedMoney.getAmount();
         Currency walletCurrency = wallet.getCurrency();
 
         IntraTransaction intraTransaction = new IntraTransaction(convertedAmount, walletCurrency, TransactionType.WITHDRAWAL, userId);
@@ -54,7 +58,9 @@ public class TransactionService {
 
     private void deposit(Long userId, Long walletId, TransactionDto transactionDto) {
         Wallet wallet = walletService.deposit(userId, walletId, transactionDto.getCurrency(), transactionDto.getAmount());
-        double convertedAmount = wallet.convertedAmount(transactionDto.getCurrency(), transactionDto.getAmount());
+        MoneyDto money = new MoneyDto(transactionDto.getCurrency().toString(), transactionDto.getAmount());
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, wallet.getCurrency().toString());
+        double convertedAmount = convertedMoney.getAmount();
         Currency walletCurrency = wallet.getCurrency();
 
         IntraTransaction intraTransaction = new IntraTransaction(convertedAmount, walletCurrency, TransactionType.DEPOSIT, userId);
@@ -66,7 +72,9 @@ public class TransactionService {
         Currency senderCurrency = wallet.getCurrency();
         double amount = transactionDto.getAmount();
         Wallet recipientWallet = walletService.transfer(senderId, walletId, transactionDto.getAmount(), transactionDto.getRecipientWalletId());
-        double convertedRecipientAmount = recipientWallet.convertedAmount(senderCurrency, amount);
+        MoneyDto money = new MoneyDto(senderCurrency.toString(), amount);
+        MoneyDto convertedMoney = moneyConversionService.convertMoney(money, recipientWallet.getCurrency().toString());
+        double convertedRecipientAmount = convertedMoney.getAmount();
 
         InterTransaction interTransaction = new InterTransaction(convertedRecipientAmount, recipientWallet.getCurrency(), TransactionType.TRANSFER, senderId, recipientWallet.getUser().getId());
         interTransactionRepository.save(interTransaction);

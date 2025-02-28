@@ -1,5 +1,6 @@
 package com.swiggy.walletapp.service;
 
+import com.swiggy.walletapp.dto.MoneyDto;
 import com.swiggy.walletapp.dto.TransactionDto;
 import com.swiggy.walletapp.dto.TransactionResponseDto;
 import com.swiggy.walletapp.entity.InterTransaction;
@@ -26,6 +27,7 @@ public class TransactionServiceTest {
 
     private IntraTransactionRepository intraTransactionRepository;
     private InterTransactionRepository interTransactionRepository;
+    private MoneyConversionService moneyConversionService;
     private WalletService walletService;
     private TransactionService transactionService;
 
@@ -33,8 +35,9 @@ public class TransactionServiceTest {
     void setUp() {
         intraTransactionRepository = mock(IntraTransactionRepository.class);
         interTransactionRepository = mock(InterTransactionRepository.class);
+        moneyConversionService = mock(MoneyConversionService.class);
         walletService = mock(WalletService.class);
-        transactionService = new TransactionService(intraTransactionRepository, interTransactionRepository, walletService);
+        transactionService = new TransactionService(intraTransactionRepository, interTransactionRepository, moneyConversionService, walletService);
     }
 
     @Test
@@ -51,8 +54,10 @@ public class TransactionServiceTest {
         final Long userId = 1L;
         final Long walletId = 1L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, 100.0, Currency.INR);
+        final MoneyDto moneyDto = new MoneyDto("INR", 100.0);
         final Wallet wallet = new Wallet(1000.0, new User(userId, "username", "password"), Currency.INR);
         when(walletService.deposit(userId, walletId, Currency.INR, 100.0)).thenReturn(wallet);
+            when(moneyConversionService.convertMoney(moneyDto, "INR")).thenReturn(new MoneyDto("INR", 100.0));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -65,8 +70,10 @@ public class TransactionServiceTest {
         final Long userId = 2L;
         final Long walletId = 2L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.DEPOSIT, 200.0, Currency.USD);
+        final MoneyDto moneyDto = new MoneyDto("USD", 200.0);
         final Wallet wallet = new Wallet(2000.0, new User(userId, "anotherUsername", "password"), Currency.USD);
         when(walletService.deposit(userId, walletId, Currency.USD, 200.0)).thenReturn(wallet);
+        when(moneyConversionService.convertMoney(moneyDto, "USD")).thenReturn(new MoneyDto("USD", 200.0));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -79,8 +86,10 @@ public class TransactionServiceTest {
         final Long userId = 1L;
         final Long walletId = 1L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, 100.0, Currency.INR);
+        final MoneyDto moneyDto = new MoneyDto("INR", 100.0);
         final Wallet wallet = new Wallet(1000.0, new User(userId, "username", "password"), Currency.INR);
         when(walletService.withdraw(userId, walletId, Currency.INR, 100.0)).thenReturn(wallet);
+        when(moneyConversionService.convertMoney(moneyDto, "INR")).thenReturn(new MoneyDto("INR", 100.0));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -93,8 +102,10 @@ public class TransactionServiceTest {
         final Long userId = 2L;
         final Long walletId = 2L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.WITHDRAWAL, 200.0, Currency.USD);
+        final MoneyDto moneyDto = new MoneyDto("USD", 200.0);
         final Wallet wallet = new Wallet(2000.0, new User(userId, "anotherUsername", "password"), Currency.USD);
         when(walletService.withdraw(userId, walletId, Currency.USD, 200.0)).thenReturn(wallet);
+        when(moneyConversionService.convertMoney(moneyDto, "USD")).thenReturn(new MoneyDto("USD", 200.0));
 
         transactionService.createTransaction(userId, walletId, transactionDto);
 
@@ -108,10 +119,12 @@ public class TransactionServiceTest {
         final Long senderWalletId = 1L;
         final Long recipientWalletId = 2L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, 100.0, Currency.INR, recipientWalletId);
+        final MoneyDto moneyDto = new MoneyDto("INR", 100.0);
         final Wallet senderWallet = new Wallet(1000.0, new User(userId, "senderUsername", "password"), Currency.INR);
         final Wallet recipientWallet = new Wallet(500.0, new User(2L, "recipientUsername", "password"), Currency.INR);
         when(walletService.fetchUserWallet(userId, senderWalletId)).thenReturn(senderWallet);
         when(walletService.transfer(userId, senderWalletId, 100.0, recipientWalletId)).thenReturn(recipientWallet);
+        when(moneyConversionService.convertMoney(moneyDto, "INR")).thenReturn(new MoneyDto("INR", 100.0));
 
         transactionService.createTransaction(userId, senderWalletId, transactionDto);
 
@@ -125,10 +138,12 @@ public class TransactionServiceTest {
         final Long senderWalletId = 2L;
         final Long recipientWalletId = 3L;
         final TransactionDto transactionDto = new TransactionDto(TransactionType.TRANSFER, 200.0, Currency.USD, recipientWalletId);
+        final MoneyDto moneyDto = new MoneyDto("USD", 200.0);
         final Wallet senderWallet = new Wallet(2000.0, new User(userId, "anotherSenderUsername", "password"), Currency.USD);
         final Wallet recipientWallet = new Wallet(1000.0, new User(3L, "anotherRecipientUsername", "password"), Currency.USD);
         when(walletService.fetchUserWallet(userId, senderWalletId)).thenReturn(senderWallet);
         when(walletService.transfer(userId, senderWalletId, 200.0, recipientWalletId)).thenReturn(recipientWallet);
+        when(moneyConversionService.convertMoney(moneyDto, "USD")).thenReturn(new MoneyDto("USD", 200.0));
 
         transactionService.createTransaction(userId, senderWalletId, transactionDto);
 

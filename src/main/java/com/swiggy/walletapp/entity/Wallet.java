@@ -14,12 +14,12 @@ import org.springframework.http.HttpStatus;
 @Table(name = "wallet")
 @RequiredArgsConstructor
 @EqualsAndHashCode
-@ToString
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Getter
     private double balance;
 
     @Getter
@@ -44,22 +44,20 @@ public class Wallet {
     }
 
     public void deposit(double amount) {
-        double convertedAmount = convertedAmount(this.currency, amount);
-        if (convertedAmount <= 0) {
+        if (amount <= 0) {
             throw new InvalidAmountException("Deposit amount must be positive", HttpStatus.BAD_REQUEST);
         }
-        this.balance += convertedAmount;
+        this.balance += amount;
     }
 
     public void withdraw(double amount) {
-        double convertedAmount = convertedAmount(this.currency, amount);
-        if (convertedAmount <= 0) {
+        if (amount <= 0) {
             throw new InvalidAmountException("Withdrawal amount must be positive", HttpStatus.BAD_REQUEST);
         }
-        if (this.balance < convertedAmount) {
+        if (this.balance < amount) {
             throw new InsufficientFundsException("Insufficient funds", HttpStatus.BAD_REQUEST);
         }
-        this.balance -= convertedAmount;
+        this.balance -= amount;
     }
 
     public boolean checkBalance(double balance) {
@@ -68,9 +66,5 @@ public class Wallet {
 
     public boolean isOwnedBy(User user) {
         return this.user.equals(user);
-    }
-
-    public double convertedAmount(Currency currency, double amount) {
-        return currency.convertTo(this.currency, amount);
     }
 }
