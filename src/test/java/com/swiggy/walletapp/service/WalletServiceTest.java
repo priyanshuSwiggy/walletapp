@@ -1,6 +1,7 @@
 package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.MoneyDto;
+import com.swiggy.walletapp.dto.WalletRequestDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -289,32 +290,24 @@ public class WalletServiceTest {
         verify(walletRepository).save(recipientWallet);
     }
 
-//    @Test
-//    public void testTransferDecreasesSenderBalanceFrom1000To900AndIncreasesRecipientBalanceFrom500To1333WhenTransferring100USDToINR() {
-//        final Long userId = 1L;
-//        final Long senderWalletId = 1L;
-//        final Long recipientUserId = 2L;
-//        final Long recipientWalletId = 2L;
-//        final User sender = new User(userId, "senderUsername", "password");
-//        final User recipient = new User(recipientUserId, "recipientUsername", "password");
-//        final Wallet senderWallet = new Wallet(1000.0, sender, Currency.USD);
-//        final Wallet recipientWallet = new Wallet(500.0, recipient, Currency.INR);
-//        final double amount = 100.0;
-//        when(walletRepository.findById(senderWalletId)).thenReturn(Optional.of(senderWallet));
-//        when(userRepository.findById(userId)).thenReturn(Optional.of(sender));
-//        when(walletRepository.findById(recipientWalletId)).thenReturn(Optional.of(recipientWallet));
-//        when(userRepository.findByWallet(recipientWallet)).thenReturn(Optional.of(recipient));
-//        when(userRepository.findById(recipientUserId)).thenReturn(Optional.of(recipient));
-//        when(moneyConversionService.convertMoney("USD", "USD", amount)).thenReturn(100.0);
-//        when(moneyConversionService.convertMoney("USD", "INR", amount)).thenReturn(8300.0);
-//        when(moneyConversionService.convertMoney("INR", "INR", 8300.0)).thenReturn(8300.0);
-//
-//
-//        walletService.transfer(userId, senderWalletId, amount, recipientWalletId);
-//
-//        assertTrue(senderWallet.checkBalance(900.0));
-//        assertTrue(recipientWallet.checkBalance(8800.0));
-//        verify(walletRepository).save(senderWallet);
-//        verify(walletRepository).save(recipientWallet);
-//    }
+    @Test
+    public void createWalletSuccessfullyWhenUserExists() {
+        final Long userId = 1L;
+        final WalletRequestDto walletRequestDto = new WalletRequestDto(Currency.INR);
+        final User user = new User("username", "password");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        walletService.createWallet(userId, walletRequestDto);
+
+        verify(walletRepository).save(any(Wallet.class));
+    }
+
+    @Test
+    public void createWalletThrowsUserNotFoundExceptionWhenUserDoesNotExist() {
+        final Long userId = 999L;
+        final WalletRequestDto walletRequestDto = new WalletRequestDto(Currency.INR);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> walletService.createWallet(userId, walletRequestDto));
+    }
 }
