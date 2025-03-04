@@ -2,6 +2,7 @@ package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.MoneyDto;
 import com.swiggy.walletapp.dto.WalletRequestDto;
+import com.swiggy.walletapp.dto.WalletResponseDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -72,5 +75,12 @@ public class WalletService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
         Wallet wallet = new Wallet(user, walletRequestDto.getCurrency());
         walletRepository.save(wallet);
+    }
+
+    public List<WalletResponseDto> getWallets(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+        return walletRepository.findAllByUser(user).stream()
+                .map(WalletResponseDto::new)
+                .toList();
     }
 }

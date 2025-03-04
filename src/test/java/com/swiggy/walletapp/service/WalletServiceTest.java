@@ -2,6 +2,7 @@ package com.swiggy.walletapp.service;
 
 import com.swiggy.walletapp.dto.MoneyDto;
 import com.swiggy.walletapp.dto.WalletRequestDto;
+import com.swiggy.walletapp.dto.WalletResponseDto;
 import com.swiggy.walletapp.entity.User;
 import com.swiggy.walletapp.entity.Wallet;
 import com.swiggy.walletapp.enums.Currency;
@@ -13,6 +14,7 @@ import com.swiggy.walletapp.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -309,5 +311,29 @@ public class WalletServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> walletService.createWallet(userId, walletRequestDto));
+    }
+
+    @Test
+    public void getWalletsSuccessfullyWhenUserExists() {
+        Long userId = 1L;
+        User user = new User("username", "password");
+        List<Wallet> wallets = List.of(
+                new Wallet(1000.0, user, Currency.INR),
+                new Wallet(2000.0, user, Currency.USD)
+        );
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(walletRepository.findAllByUser(user)).thenReturn(wallets);
+
+        List<WalletResponseDto> result = walletService.getWallets(userId);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    public void getWalletsThrowsUserNotFoundExceptionWhenUserDoesNotExist() {
+        Long userId = 999L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> walletService.getWallets(userId));
     }
 }

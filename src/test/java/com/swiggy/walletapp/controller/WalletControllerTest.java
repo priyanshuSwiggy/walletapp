@@ -2,6 +2,7 @@ package com.swiggy.walletapp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swiggy.walletapp.dto.WalletRequestDto;
+import com.swiggy.walletapp.dto.WalletResponseDto;
 import com.swiggy.walletapp.enums.Currency;
 import com.swiggy.walletapp.exception.GlobalExceptionHandler;
 import com.swiggy.walletapp.exception.UserNotFoundException;
@@ -16,8 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,6 +69,32 @@ public class WalletControllerTest {
         mockMvc.perform(post(WALLET_URL, 999L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(walletRequestDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("User not found"));
+    }
+
+    @Test
+    public void getWalletsSuccessfullyWhenUserExists() throws Exception {
+        Long userId = 1L;
+        List<WalletResponseDto> walletResponseDtos = List.of(
+                new WalletResponseDto(1L, 1000.0, Currency.INR),
+                new WalletResponseDto(2L, 2000.0, Currency.USD)
+        );
+        when(walletService.getWallets(userId)).thenReturn(walletResponseDtos);
+
+        mockMvc.perform(get(WALLET_URL, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(walletResponseDtos)));
+    }
+
+    @Test
+    public void getWalletsFailureWhenUserNotFound() throws Exception {
+        Long userId = 999L;
+        when(walletService.getWallets(userId)).thenThrow(new UserNotFoundException("User not found", HttpStatus.NOT_FOUND));
+
+        mockMvc.perform(get(WALLET_URL, userId)
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("User not found"));
     }

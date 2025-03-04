@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.springframework.http.HttpStatus;
 
+@Getter
 @Entity
 @Table(name = "wallet")
 @RequiredArgsConstructor
@@ -19,14 +20,11 @@ public class Wallet {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Getter
     private double balance;
 
-    @Getter
     @Enumerated(EnumType.STRING)
     private Currency currency;
 
-    @Getter
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
