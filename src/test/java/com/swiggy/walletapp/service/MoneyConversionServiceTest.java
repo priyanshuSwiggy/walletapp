@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 
 public class MoneyConversionServiceTest {
 
-    private static final String CONVERSION_URL = "http://localhost:8085/convert";
+    private static final String CONVERSION_URL = "http://host.docker.internal:8085/convertedMoney";
 
     private RestTemplate restTemplate;
     private MoneyConversionService moneyConversionService;

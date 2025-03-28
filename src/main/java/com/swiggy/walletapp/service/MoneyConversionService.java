@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import pb.MoneyConverterGrpc;
-import pb.MoneyConverterOuterClass;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +31,7 @@ public class MoneyConversionService {
 
     private final RestTemplate restTemplate;
 
-    private static final String CONVERSION_URL = "http://localhost:8085/convert";
+    private static final String CONVERSION_URL = "http://host.docker.internal:8085/convertedMoney";
 
     public MoneyDto convertMoney(MoneyDto money, String toCurrency) {
         MoneyConversionRequest request = new MoneyConversionRequest(money, toCurrency);
